@@ -32,3 +32,7 @@ api/dist
 *.njsproj
 *.sln
 *.sw?
+
+
+# Generated AI project context
+/project-context/
