@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ConnectionStatus {
+  NOT_CONNECTED
+  REQUESTED
+  CONNECTED
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  ASSESSMENT
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  OTHER
+}
+
+enum WorkArrangement {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum EventType {
+  INTERVIEW
+  ASSESSMENT
+  NETWORKING
+  OTHER
+}
+
+model User {
+  id           String           @id @default(cuid())
+  name         String
+  email        String           @unique
+  companies    Company[]
+  contacts     Contact[]
+  applications JobApplication[]
+  tasks        Task[]
+  events       Event[]
+  activities   Activity[]
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+}
+
+model Company {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  website      String?
+  careersUrl   String?
+  linkedinUrl  String?
+  industry     String?
+  location     String?
+  size         String?
+  notes        String?
+  tags         String[]         @default([])
+  contacts     Contact[]
+  applications JobApplication[]
+  tasks        Task[]
+  events       Event[]
+  activities   Activity[]
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, name])
+  @@index([userId, industry])
+  @@unique([id, userId])
+}
+
+model Contact {
+  id                    String           @id @default(cuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId             String?
+  company               Company?         @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  name                  String
+  jobTitle              String?
+  linkedinUrl           String?
+  email                 String?
+  phone                 String?
+  connectionStatus      ConnectionStatus @default(NOT_CONNECTED)
+  connectionRequestedAt DateTime?        @db.Timestamptz(3)
+  connectionAcceptedAt  DateTime?        @db.Timestamptz(3)
+  lastContactedAt       DateTime?        @db.Timestamptz(3)
+  nextFollowUpAt        DateTime?        @db.Timestamptz(3)
+  notes                 String?
+  tasks                 Task[]
+  events                Event[]
+  activities            Activity[]
+  createdAt             DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime         @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, name])
+  @@index([userId, jobTitle])
+  @@index([userId, email])
+  @@index([userId, companyId])
+  @@index([userId, connectionStatus])
+  @@index([userId, nextFollowUpAt])
+  @@unique([id, userId])
+}
+
+model JobApplication {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId       String?
+  company         Company?          @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  jobTitle        String
+  jobDescription  String?
+  jobUrl          String?
+  applicationUrl String?
+  status          ApplicationStatus @default(SAVED)
+  jobType         JobType?
+  location        String?
+  workArrangement WorkArrangement?
+  appliedAt       DateTime?         @db.Timestamptz(3)
+  resumeReference String?
+  nextAction      String?
+  nextFollowUpAt  DateTime?         @db.Timestamptz(3)
+  notes           String?
+  tasks           Task[]
+  events          Event[]
+  activities      Activity[]
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, status])
+  @@index([userId, jobTitle])
+  @@index([userId, appliedAt])
+  @@index([userId, companyId])
+  @@index([userId, nextFollowUpAt])
+  @@unique([id, userId])
+}
+
+model Task {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  dueAt         DateTime?        @db.Timestamptz(3)
+  priority      TaskPriority    @default(MEDIUM)
+  status        TaskStatus      @default(TODO)
+  companyId     String?
+  company       Company?        @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  contactId     String?
+  contact       Contact?        @relation(fields: [contactId, userId], references: [id, userId], onDelete: Restrict)
+  applicationId String?
+  application   JobApplication? @relation(fields: [applicationId, userId], references: [id, userId], onDelete: Restrict)
+  createdAt     DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime        @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, status, dueAt])
+  @@index([userId, priority])
+  @@index([userId, companyId])
+}
+
+model Event {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  eventType     EventType       @default(OTHER)
+  startsAt      DateTime        @db.Timestamptz(3)
+  endsAt        DateTime?       @db.Timestamptz(3)
+  location      String?
+  meetingUrl    String?
+  notes         String?
+  companyId     String?
+  company       Company?        @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  contactId     String?
+  contact       Contact?        @relation(fields: [contactId, userId], references: [id, userId], onDelete: Restrict)
+  applicationId String?
+  application   JobApplication? @relation(fields: [applicationId, userId], references: [id, userId], onDelete: Restrict)
+  createdAt     DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime        @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, startsAt])
+  @@index([userId, eventType])
+  @@index([userId, companyId])
+}
+
+model Activity {
+  id            String          @id @default(cuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          String
+  description   String
+  occurredAt    DateTime        @default(now()) @db.Timestamptz(3)
+  companyId     String?
+  company       Company?        @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  contactId     String?
+  contact       Contact?        @relation(fields: [contactId, userId], references: [id, userId], onDelete: Restrict)
+  applicationId String?
+  application   JobApplication? @relation(fields: [applicationId, userId], references: [id, userId], onDelete: Restrict)
+  createdAt     DateTime        @default(now()) @db.Timestamptz(3)
+
+  @@index([userId, occurredAt])
+  @@index([userId, type, occurredAt])
+  @@index([userId, companyId])
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f8fa" />
+    <meta name="description" content="A calmer way to organize your career search, applications, and professional network." />
+    <title>CareerOS — Your next move, organized</title>
+    <script>
+      try {
+        const theme = localStorage.getItem('careeros-theme-v1')
+        if (theme === 'dark' || theme === 'light') document.documentElement.dataset.theme = theme
+      } catch {
+        // Theme storage may be unavailable in restricted browser contexts.
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
