@@ -55,8 +55,9 @@ enum EventType {
 }
 
 model User {
-  id           String           @id @default(cuid())
-  name         String
+  id             String           @id @default(cuid())
+  supabaseAuthId String?          @unique @db.Uuid
+  name           String
   email        String           @unique
   companies    Company[]
   contacts     Contact[]
