@@ -3,6 +3,10 @@ import type { CareerData, RecordType } from '../types'
 
 export interface CareerDataContextValue {
   data: CareerData
+  dataLoading: boolean
+  dataError: string
+  dataRetryLabel: 'Try again' | 'Retry request' | 'Refresh workspace'
+  retryDataLoad: () => void
   addRecord: (type: RecordType, values: Record<string, string>) => void
   updateRecord: (type: RecordType, id: string, values: Record<string, string>) => void
   deleteRecord: (type: RecordType, id: string) => void

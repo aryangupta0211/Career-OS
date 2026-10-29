@@ -17,7 +17,7 @@ const companies: Company[] = [
   { id: 'co-7', name: 'Brightside', industry: 'Technology', location: 'Austin, TX', website: 'https://brightside.example', size: '50–200', tags: ['Early stage'], careersUrl: 'https://brightside.example/careers', linkedinUrl: 'https://linkedin.com/company/brightside', notes: '', createdAt: dateOffset(-9) },
 ]
 
-const applications: Application[] = [
+const applicationSeeds: Omit<Application, 'prepNotes'>[] = [
   { id: 'app-1', companyId: 'co-1', jobTitle: 'Senior Product Designer', status: 'Interview', appliedAt: dateOffset(-18), nextAction: 'Portfolio conversation', nextFollowUpAt: dateOffset(1, 14), location: 'San Francisco, CA', jobDescription: '', jobUrl: '', applicationUrl: '', jobType: 'Full-time', workArrangement: 'Hybrid', resumeReference: 'Product design v3', notes: '' },
   { id: 'app-2', companyId: 'co-2', jobTitle: 'Product Designer', status: 'Assessment', appliedAt: dateOffset(-16), nextAction: 'Submit design exercise', nextFollowUpAt: dateOffset(2), location: 'New York, NY', jobDescription: '', jobUrl: '', applicationUrl: '', jobType: 'Full-time', workArrangement: 'Hybrid', resumeReference: 'Product design v3', notes: '' },
   { id: 'app-3', companyId: 'co-3', jobTitle: 'Design Systems Lead', status: 'Applied', appliedAt: dateOffset(-13), nextAction: 'Follow up with recruiter', nextFollowUpAt: dateOffset(3), location: 'Remote', jobDescription: '', jobUrl: '', applicationUrl: '', jobType: 'Full-time', workArrangement: 'Remote', resumeReference: 'Product design v3', notes: '' },
@@ -30,6 +30,7 @@ const applications: Application[] = [
   { id: 'app-10', companyId: 'co-5', jobTitle: 'Product Designer, Growth', status: 'Saved', appliedAt: dateOffset(-2), nextAction: 'Research the team', nextFollowUpAt: dateOffset(7), location: 'Chicago, IL', jobDescription: '', jobUrl: '', applicationUrl: '', jobType: 'Full-time', workArrangement: 'Hybrid', resumeReference: 'Growth designer resume', notes: '' },
   { id: 'app-11', companyId: 'co-2', jobTitle: 'Design Operations Lead', status: 'Applied', appliedAt: dateOffset(-1), nextAction: 'Connect with the team', nextFollowUpAt: dateOffset(8), location: 'Remote', jobDescription: '', jobUrl: '', applicationUrl: '', jobType: 'Full-time', workArrangement: 'Remote', resumeReference: 'Product design v3', notes: '' },
 ]
+const applications: Application[] = applicationSeeds.map((application) => ({ ...application, prepNotes: '' }))
 
 const contacts: Contact[] = [
   { id: 'ct-1', companyId: 'co-1', name: 'Maya Chen', jobTitle: 'Talent Partner', status: 'Connected', lastContactedAt: dateOffset(-2), tags: ['Recruiter', 'Design'], linkedinUrl: '', email: '', phone: '', connectionRequestedAt: dateOffset(-8), connectionAcceptedAt: dateOffset(-6), nextFollowUpAt: dateOffset(3), notes: '' },
@@ -61,10 +62,10 @@ const events: CareerEvent[] = [
 ]
 
 const activities: Activity[] = [
-  { id: 'act-1', description: 'Interview scheduled for Product Designer', occurredAt: dateOffset(-1), companyId: 'co-4' },
-  { id: 'act-2', description: 'Connected with Maya Chen', occurredAt: dateOffset(-2), companyId: 'co-1' },
-  { id: 'act-3', description: 'Application moved to assessment', occurredAt: dateOffset(-3), companyId: 'co-2' },
-  { id: 'act-4', description: 'Referral conversation with Ari Patel', occurredAt: dateOffset(-4), companyId: 'co-4' },
+  { id: 'act-1', type: 'INTERVIEW_SCHEDULED', description: 'Interview scheduled for Product Designer', occurredAt: dateOffset(-1), companyId: 'co-4', contactId: '', applicationId: 'app-4' },
+  { id: 'act-2', type: 'CONTACT_CONNECTED', description: 'Connected with Maya Chen', occurredAt: dateOffset(-2), companyId: 'co-1', contactId: 'ct-1', applicationId: '' },
+  { id: 'act-3', type: 'APPLICATION_STATUS_CHANGED', description: 'Application moved to assessment', occurredAt: dateOffset(-3), companyId: 'co-2', contactId: '', applicationId: 'app-2' },
+  { id: 'act-4', type: 'REFERRAL_CONVERSATION', description: 'Referral conversation with Ari Patel', occurredAt: dateOffset(-4), companyId: 'co-4', contactId: 'ct-4', applicationId: '' },
 ]
 
 export const demoData: CareerData = { companies, applications, contacts, tasks, events, activities }

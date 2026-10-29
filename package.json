@@ -15,7 +15,7 @@
     "start:api": "npm run start --workspace @careeros/api",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run src api/src",
     "prisma:generate": "npm run prisma:generate --workspace @careeros/api",
     "prisma:validate": "npm run prisma:validate --workspace @careeros/api",
     "prisma:migrate": "npm run prisma:migrate --workspace @careeros/api",

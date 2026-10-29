@@ -107,6 +107,7 @@ model Contact {
   email                 String?
   phone                 String?
   connectionStatus      ConnectionStatus @default(NOT_CONNECTED)
+  tags                  String[]         @default([])
   connectionRequestedAt DateTime?        @db.Timestamptz(3)
   connectionAcceptedAt  DateTime?        @db.Timestamptz(3)
   lastContactedAt       DateTime?        @db.Timestamptz(3)
@@ -135,6 +136,7 @@ model JobApplication {
   company         Company?          @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
   jobTitle        String
   jobDescription  String?
+  prepNotes       String?
   jobUrl          String?
   applicationUrl String?
   status          ApplicationStatus @default(SAVED)
@@ -167,6 +169,7 @@ model Task {
   title         String
   description   String?
   dueAt         DateTime?        @db.Timestamptz(3)
+  category      String?
   priority      TaskPriority    @default(MEDIUM)
   status        TaskStatus      @default(TODO)
   companyId     String?

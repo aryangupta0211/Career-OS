@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell, BriefcaseBusiness, Building2, CalendarDays, CheckSquare, ChevronDown, CircleHelp,
   Command, LayoutDashboard, LogOut, Moon, Plus, Search, Settings, Sun, Users, X,
 } from 'lucide-react'
 import { getCompanyName } from '../data/demo'
 import { useCareerData } from '../context/useCareerData'
+import { useAuth } from '../context/auth-context'
 import { useTheme } from '../context/useTheme'
 import type { RecordType } from '../types'
 import { RecordDialog } from './RecordDialog'
@@ -37,7 +38,8 @@ const pathTitles: Record<string, string> = {
   '/settings': 'Settings',
 }
 export function AppShell() {
-  const { data } = useCareerData()
+  const { data, dataLoading, dataError, dataRetryLabel, retryDataLoad } = useCareerData()
+  const auth = useAuth()
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
@@ -48,6 +50,7 @@ export function AppShell() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [noticeOpen, setNoticeOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [signOutError, setSignOutError] = useState('')
   const [addInitialDate, setAddInitialDate] = useState<Date | undefined>()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const title = pathTitles[location.pathname] ?? 'CareerOS'
@@ -82,6 +85,17 @@ export function AppShell() {
     setAddInitialDate(initialDate)
     setAddType(type)
   }
+  const displayName = auth.user?.name ?? (auth.loading ? 'Restoring session…' : 'Demo user')
+  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('')
+  const signOut = async () => {
+    setSignOutError('')
+    try {
+      await auth.signOut()
+      navigate('/auth/login', { replace: true })
+    } catch (error) {
+      setSignOutError(error instanceof Error ? error.message : 'Could not sign out. Please try again.')
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -109,13 +123,26 @@ export function AppShell() {
         <div className="sidebar-section-label management-label">MANAGE</div>
         <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}><Settings size={17} strokeWidth={1.8} /><span>Settings</span></NavLink>
         <div className="sidebar-bottom">
-          <div className="demo-callout"><div className="demo-dot" /><span><strong>Demo workspace</strong><small>Data stays in this browser</small></span></div>
+          {auth.dataMode === 'demo'
+            ? <div className="demo-callout"><div className="demo-dot" /><span><strong>Demo workspace</strong><small>Data stays in this browser</small></span></div>
+            : <div className="demo-callout"><div className="demo-dot" /><span><strong>Personal workspace</strong><small>{auth.user?.email}</small></span></div>}
           <button className="user-card" onClick={() => setMenuOpen((open) => !open)}>
-            <span className="user-avatar">AC</span>
-            <span className="user-copy"><strong>Alex Carter</strong><small>Personal account</small></span>
+            <span className="user-avatar">{initials}</span>
+            <span className="user-copy"><strong>{displayName}</strong><small>{auth.user?.email ?? (auth.loading ? 'Checking your account…' : 'Personal demo account')}</small></span>
             <ChevronDown size={15} />
           </button>
-          {menuOpen && <div className="user-menu"><button onClick={() => { navigate('/settings'); setMenuOpen(false) }}><Settings size={15} /> Settings</button><button onClick={() => setMenuOpen(false)}><LogOut size={15} /> Close menu</button></div>}
+          {menuOpen && <div className="user-menu">
+            <button onClick={() => { navigate('/settings'); setMenuOpen(false) }}><Settings size={15} /> Settings</button>
+            {auth.loading
+              ? <p className="auth-message" role="status">Restoring your session…</p>
+              : auth.session
+                ? <button onClick={() => { void signOut() }}><LogOut size={15} /> Sign out</button>
+                : <>
+                  <Link to="/auth/login" onClick={() => setMenuOpen(false)}>Sign in</Link>
+                  <Link to="/auth/signup" onClick={() => setMenuOpen(false)}>Create account</Link>
+                </>}
+            {signOutError && <p className="form-error" role="alert">{signOutError}</p>}
+          </div>}
         </div>
       </aside>
 
@@ -146,12 +173,34 @@ export function AppShell() {
               {noticeOpen && <div className="notification-popover"><strong>You’re all caught up</strong><p>Upcoming interviews and follow-ups will appear here.</p><button onClick={() => { navigate('/calendar'); setNoticeOpen(false) }}>View your calendar</button></div>}
             </div>
             <div className="top-profile-wrap">
-              <button className="top-avatar" aria-label="Open profile menu" aria-expanded={profileOpen} onClick={() => setProfileOpen((open) => !open)}>AC</button>
-              {profileOpen && <div className="top-profile-menu"><strong>Alex Carter</strong><span>Personal demo account</span><button onClick={() => { navigate('/settings'); setProfileOpen(false) }}><Settings size={14} /> Settings</button></div>}
+              <button className="top-avatar" aria-label="Open profile menu" aria-expanded={profileOpen} onClick={() => setProfileOpen((open) => !open)}>{initials}</button>
+              {profileOpen && <div className="top-profile-menu">
+                <strong>{displayName}</strong><span>{auth.user?.email ?? (auth.loading ? 'Checking your account…' : 'Personal demo account')}</span>
+                <button onClick={() => { navigate('/settings'); setProfileOpen(false) }}><Settings size={14} /> Settings</button>
+                {auth.loading
+                  ? <p className="auth-message" role="status">Restoring your session…</p>
+                  : auth.session
+                    ? <button onClick={() => { void signOut() }}><LogOut size={14} /> Sign out</button>
+                    : <>
+                      <Link to="/auth/login" onClick={() => setProfileOpen(false)}>Sign in</Link>
+                      <Link to="/auth/signup" onClick={() => setProfileOpen(false)}>Create account</Link>
+                    </>}
+                {signOutError && <p className="form-error" role="alert">{signOutError}</p>}
+              </div>}
             </div>
           </div>
         </header>
-        <div className="page-content"><Outlet context={{ openAdd }} /></div>
+        <div className="page-content">
+          {dataError
+            ? <section className="data-error" role="alert">
+              <h2>Workspace data unavailable</h2>
+              <p>{dataError}</p>
+              <button className="button button-secondary" onClick={retryDataLoad}>{dataRetryLabel}</button>
+            </section>
+            : dataLoading
+              ? <p className="data-status" role="status">Loading your workspace…</p>
+              : <Outlet context={{ openAdd }} />}
+        </div>
         <footer className="app-footer"><span>CareerOS <span className="footer-dot">·</span> Your next move, organized.</span><a href="mailto:hello@careeros.example"><CircleHelp size={14} /> Help</a></footer>
       </main>
       {addType && <RecordDialog type={addType} initialDate={addInitialDate} onClose={() => { setAddType(null); setAddInitialDate(undefined) }} />}

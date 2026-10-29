@@ -1,6 +1,6 @@
 # Supabase and Prisma database setup
 
-CareerOS uses PostgreSQL on Supabase and Prisma 7.10. The Prisma schema and an initial SQL migration are checked into `prisma/`. The app remains in browser-local demo mode until authentication and a user-scoped API data provider are implemented.
+CareerOS uses PostgreSQL on Supabase and Prisma 7.10. The Prisma schema and SQL migrations are checked into `prisma/`. Browser-local demo mode remains the default; optional API mode uses Supabase email authentication and owner-scoped record endpoints.
 
 ## 1. Create or select a Supabase project
 
@@ -9,7 +9,7 @@ CareerOS uses PostgreSQL on Supabase and Prisma 7.10. The Prisma schema and an i
 3. Copy a PostgreSQL connection URI. For a local migration workflow, prefer the direct database connection when your network supports IPv6, or the **Session pooler** connection when it does not. Do not use a transaction-pooler URL for Prisma migrations.
 4. Ensure TLS is enabled with `sslmode=verify-full`.
 
-The direct host supplied for this workspace currently resolves only to IPv6; the active environment reports `ENOTFOUND` in Node.js and cannot reach port 5432. If you see this, copy the session-pooler URI from Supabase and use its host, port, and username instead.
+Last verified on 2026-10-29: after explicit project-owner approval, both feature migrations were deployed to the configured project. Read-only status reports all four migrations applied; the added columns have the expected types/defaults, and `prisma migrate diff` reports no schema difference. The configured frontend, backend, and database project references agree.
 
 ## 2. Store the URL privately
 
@@ -41,7 +41,7 @@ This makes a connection and lists public table names only. It does not read user
 - If any existing CareerOS or unfamiliar application tables are listed, stop. Do not run the initial migration until you have confirmed the database's ownership and created a backup/baseline plan.
 - If the connection fails, check the host, port, password encoding, TLS settings, project status, and pooler choice. The application remains usable in local demo mode; API health reports the database as unavailable.
 
-The `DATABASE_URL` currently configured for this workspace cannot be reached from its network, so the connection check and migration have not succeeded here.
+The current environment's read-only connection check succeeds and finds the application tables. All four migrations are now recorded as applied. The final read-only `prisma migrate diff` reports no schema differences.
 
 ## 4. Review and apply migrations
 
@@ -72,20 +72,26 @@ npm run prisma:migrate:deploy
 
 - `User` owns every record; email is unique per user table.
 - `Company`, `Contact`, `JobApplication`, `Task`, `Event`, and `Activity` store the owner ID. Composite foreign keys prevent linking records across users.
-- Deleting a user cascades to the user's records. Deleting a referenced company, contact, or application is restricted; unlink/reassign dependent records in a reviewed transaction first.
-- Tasks and events are separate entities. Task due dates and event start/end values are timezone-aware PostgreSQL timestamps. Companies support a PostgreSQL text-array of tags.
-- IDs use CUIDs consistently. Statuses and categories use PostgreSQL enums.
+- Deleting a user cascades to the user's records. The demo provider preserves the current UX by unlinking optional references to a deleted company, contact, or application before removing that item. Database-backed deletion must perform the same unlink-and-delete operation in one Prisma transaction; foreign-key restrictions remain in place so a partial operation cannot silently orphan references.
+- Tasks and events are separate entities. Task due dates and event start/end values are timezone-aware PostgreSQL timestamps. Companies and contacts support PostgreSQL text-array tags.
+- IDs use CUIDs consistently. Record statuses use PostgreSQL enums; task category is optional text.
 
 ## Demo data and authentication
 
-The frontend's `DemoCareerDataProvider` continues to read/write `careeros-demo-v1` in the current browser. Settings can export a JSON backup on demand. No local data is uploaded to Supabase. There is no automated importer, authentication, user-scoped CRUD API, seed command, or connected frontend data provider.
+The frontend defaults to `VITE_DATA_MODE=demo`; `DemoCareerDataProvider` reads and writes `careeros-demo-v1` in the current browser. Settings can export a JSON backup, and local demo records are not uploaded automatically. There is no automated importer.
 
-The Prisma singleton is server-side only. Do not expose it through unauthenticated endpoints. Before CRUD is added, integrate a trusted auth identity, derive `userId` from that identity on the server, validate every related record against that owner, and add transaction-backed repository/service operations.
+To opt into API mode, set `VITE_DATA_MODE=api` and configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the frontend. Configure the matching `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `api/.env`. Token verification calls `supabase.auth.getUser(token)` and uses the least-privileged supported server configuration; a service-role key is not required solely to verify tokens. The API requires a confirmed email and resolves an internal user by Supabase UUID. Email alone is never used to link accounts.
+
+The API reads `api/.env` relative to its config module at startup and requires the exact backend variable names `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. The frontend-only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` names do not configure the API. After changing `api/.env`, restart the API process. `AUTH_NOT_CONFIGURED` means one or both backend variables are missing; it does not mean a bearer token was accepted or rejected.
+
+`POST /api/auth/provision` verifies a confirmed identity before creating its internal-user mapping. Authenticated `GET /api/data` reads the user's records; `POST /api/data/:kind` creates a record, and `PATCH`/`DELETE /api/data/:kind/:id` update or remove one. Supported kinds are `company`, `application`, `contact`, `task`, and `event`. The server derives `userId` from the verified mapping, validates related records against the same owner, returns owner-scoped 404s for unavailable records, and transactionally unlinks optional references before deletion. Activities are included in reads and unlinking but are not directly editable from the current UI. These endpoints use the Prisma singleton only behind authentication.
 
 ## Troubleshooting and handoff
 
 - `npm run db:check` is read-only and reports an error code without exposing the connection URL.
-- `GET http://localhost:3001/api/health` reports database state; `foundation-only` means no data CRUD exists even when the connection succeeds.
+- The API build copies `prod-ca-2021.crt` to `api/dist/`; Supabase database connections require that certificate and use `rejectUnauthorized: true`. The API refuses a Supabase TLS connection if the certificate is missing.
+- `GET http://localhost:3001/api/health` reports database state and the `authenticated-api` mode.
+- If an authenticated `GET /api/data` returns `DATABASE_SCHEMA_OUTDATED`, compare the deployed database with the Prisma schema using `prisma migrate status` and `prisma migrate diff`. The current configured database has all four migrations applied and no schema difference.
 - If direct IPv6 connectivity is unavailable, use Supabase's session-pooler URI from the dashboard.
 - Keep `.env` private and rotate a database password if it was pasted into a chat, ticket, or other shared system.
-- Before public deployment, add authentication and authorization, secure CRUD, request validation, connection-pool sizing, migrations/backup procedures, and integration tests.
+- Before public deployment, complete authenticated API integration tests, rate limiting, production CORS/secrets review, connection-pool sizing, and migration/backup procedures.

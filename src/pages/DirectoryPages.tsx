@@ -4,9 +4,11 @@ import { ArrowDownUp, ArrowRight, CalendarDays, Check, Circle, Download, Pencil,
 import { useLocation, useOutletContext, useSearchParams } from 'react-router-dom'
 import { getCompanyName } from '../data/demo'
 import { useCareerData } from '../context/useCareerData'
+import { useAuth } from '../context/auth-context'
 import type { AppShellContext, RecordType } from '../types'
 import { RecordDialog } from '../components/RecordDialog'
 import { MonthlyCalendar } from '../components/MonthlyCalendar'
+import { taskDueDateLabel } from '../lib/taskDueDate'
 import { useTheme } from '../context/useTheme'
 
 interface DirectoryRow {
@@ -126,7 +128,7 @@ export function TasksPage() {
     <div className="tasks-layout">
       <div className="panel task-board"><PanelTitle title="To do" count={open.length} /><div className="task-board-filters"><select aria-label="Filter tasks by date" value={timeFilter} onChange={(event) => setTimeFilter(event.target.value)}><option>All open</option><option>Today</option><option>Upcoming</option><option>Overdue</option></select><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}><option>All priorities</option><option>High</option><option>Medium</option><option>Low</option></select></div><div className="full-task-list">{visibleOpen.map((task) => {
         const overdue = isBefore(parseISO(task.dueAt), today)
-        return <div className="full-task-row" key={task.id}><button className="task-check" aria-label="Mark task complete" onClick={() => toggleTask(task.id)}><Check size={12} /></button><div className="full-task-copy"><strong>{task.title}</strong><span>{getCompanyName(data, task.companyId)}</span></div><span className={`priority priority-${task.priority.toLowerCase()}`}>{task.priority}</span><time className={overdue ? 'overdue-date' : ''}>{overdue ? 'Overdue' : format(parseISO(task.dueAt), 'MMM d')}</time><button className="row-delete-button" aria-label={`Edit task ${task.title}`} onClick={() => setEditing(task.id)}><Pencil size={14} /></button><button className="row-delete-button" aria-label={`Delete ${task.title}`} onClick={() => handleDelete(task.id)}><Trash2 size={14} /></button></div>
+        return <div className="full-task-row" key={task.id}><button className="task-check" aria-label="Mark task complete" onClick={() => toggleTask(task.id)}><Check size={12} /></button><div className="full-task-copy"><strong>{task.title}</strong><span>{getCompanyName(data, task.companyId)}</span></div><span className={`priority priority-${task.priority.toLowerCase()}`}>{task.priority}</span><time className={overdue ? 'overdue-date' : ''}>{overdue ? 'Overdue' : taskDueDateLabel(task.dueAt)}</time><button className="row-delete-button" aria-label={`Edit task ${task.title}`} onClick={() => setEditing(task.id)}><Pencil size={14} /></button><button className="row-delete-button" aria-label={`Delete ${task.title}`} onClick={() => handleDelete(task.id)}><Trash2 size={14} /></button></div>
       })}{!visibleOpen.length && <DirectoryEmpty text={open.length ? 'No tasks match these filters.' : 'Nothing on your list. You’re all caught up.'} />}</div></div>
       <div className="panel task-board"><PanelTitle title="Completed" count={completed.length} /><div className="full-task-list">{completed.map((task) => <div className="full-task-row completed-task" key={task.id}><button className="task-check checked" aria-label="Reopen task" onClick={() => toggleTask(task.id)}><Check size={12} /></button><div className="full-task-copy"><strong>{task.title}</strong><span>{getCompanyName(data, task.companyId)}</span></div><button className="row-delete-button" aria-label={`Edit task ${task.title}`} onClick={() => setEditing(task.id)}><Pencil size={14} /></button><button className="row-delete-button" aria-label={`Delete ${task.title}`} onClick={() => handleDelete(task.id)}><Trash2 size={14} /></button></div>)}{!completed.length && <DirectoryEmpty text="Completed tasks will appear here." />}</div></div>
     </div>
@@ -148,23 +150,25 @@ export function CalendarPage() {
 
 export function SettingsPage() {
   const { data } = useCareerData()
+  const auth = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const demoMode = auth.dataMode === 'demo'
   const exportDemoData = () => {
     const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const downloadUrl = URL.createObjectURL(file)
     const link = document.createElement('a')
     link.href = downloadUrl
-    link.download = `careeros-demo-${format(new Date(), 'yyyy-MM-dd')}.json`
+    link.download = `careeros-${demoMode ? 'demo' : 'workspace'}-${format(new Date(), 'yyyy-MM-dd')}.json`
     link.click()
     URL.revokeObjectURL(downloadUrl)
   }
-  return <section className="directory-page"><div className="page-title-row"><div><p className="eyebrow">PREFERENCES</p><h1>Settings</h1><p className="page-description">Manage this local demo workspace.</p></div></div>
+  return <section className="directory-page"><div className="page-title-row"><div><p className="eyebrow">PREFERENCES</p><h1>Settings</h1><p className="page-description">{demoMode ? 'Manage this local demo workspace.' : 'Manage your private CareerOS workspace.'}</p></div></div>
     <div className="settings-grid">
-      <article className="panel settings-card"><div className="settings-icon"><Circle size={18} /></div><div><h2>Demo workspace</h2><p>Your records are saved only in this browser using local storage. No account or server sync is configured.</p><span className="settings-status"><i /> Local demo mode</span></div></article>
+      <article className="panel settings-card"><div className="settings-icon"><Circle size={18} /></div><div><h2>{demoMode ? 'Demo workspace' : 'Private workspace'}</h2><p>{demoMode ? 'Your records are saved only in this browser using local storage. No account or server sync is configured.' : 'Your records are loaded from the authenticated CareerOS API and scoped to your account.'}</p><span className="settings-status"><i /> {demoMode ? 'Local demo mode' : 'Authenticated API mode'}</span></div></article>
       <article className="panel settings-card"><div className="settings-icon"><CalendarDays size={18} /></div><div><h2>Workspace summary</h2><p>{data.companies.length} companies · {data.contacts.length} contacts · {data.applications.length} applications</p><span className="settings-status">Sample data can be edited or removed at any time.</span></div></article>
       <article className="panel settings-card"><div className="settings-icon"><CalendarDays size={18} /></div><div><h2>Appearance</h2><p>Choose the display theme for this browser.</p><button className="button button-secondary" onClick={toggleTheme}>Switch to {theme === 'light' ? 'dark' : 'light'} mode</button></div></article>
-      <article className="panel settings-card"><div className="settings-icon"><Download size={18} /></div><div><h2>Export demo data</h2><p>Download a JSON backup of the records saved in this browser. Nothing is uploaded.</p><button className="button button-secondary" onClick={exportDemoData}>Download backup</button></div></article>
-      <article className="panel settings-card"><div className="settings-icon"><ArrowRight size={18} /></div><div><h2>Coming next</h2><p>Secure accounts, shared database storage, reminders and calendar integrations are planned for a future milestone.</p><span className="settings-status">No backend authentication or sync is active.</span></div></article>
+      <article className="panel settings-card"><div className="settings-icon"><Download size={18} /></div><div><h2>{demoMode ? 'Export demo data' : 'Export workspace data'}</h2><p>{demoMode ? 'Download a JSON backup of the records saved in this browser. Nothing is uploaded.' : 'Download a JSON backup of the records in your private workspace.'}</p><button className="button button-secondary" onClick={exportDemoData}>Download backup</button></div></article>
+      <article className="panel settings-card"><div className="settings-icon"><ArrowRight size={18} /></div><div><h2>{demoMode ? 'Coming next' : 'Workspace access'}</h2><p>{demoMode ? 'Secure accounts, shared database storage, reminders and calendar integrations are planned for a future milestone.' : 'Sign-in, email confirmation, and account-scoped API access are enabled for this workspace.'}</p><span className="settings-status">{demoMode ? 'No backend authentication or sync is active.' : 'Your records are private to your authenticated account.'}</span></div></article>
     </div>
   </section>
 }

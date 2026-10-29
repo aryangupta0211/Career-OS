@@ -1,6 +1,7 @@
-import { z } from 'zod'
+import { useEffect, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { useCareerData } from '../context/useCareerData'
+import { createRecordSchema } from '../lib/recordValidation'
 import type { Application, CareerEvent, Company, Contact, FollowUpTask, RecordType } from '../types'
 
 interface RecordDialogProps {
@@ -48,6 +49,7 @@ const fieldsByType: Record<RecordType, Field[]> = {
     { name: 'workArrangement', label: 'Work arrangement', type: 'select', options: ['On-site', 'Hybrid', 'Remote'] },
     { name: 'resumeReference', label: 'Resume version' },
     { name: 'jobDescription', label: 'Role notes', type: 'textarea' },
+    { name: 'prepNotes', label: 'Interview preparation notes', type: 'textarea' },
     { name: 'notes', label: 'Application notes', type: 'textarea' },
   ],
   contact: [
@@ -79,7 +81,7 @@ const fieldsByType: Record<RecordType, Field[]> = {
     { name: 'title', label: 'Event title', required: true },
     { name: 'eventType', label: 'Event type', type: 'select', options: ['Interview', 'Assessment', 'Networking', 'Other'] },
     { name: 'companyId', label: 'Company', company: true },
-    { name: 'startsAt', label: 'Date and time', type: 'datetime-local' },
+    { name: 'startsAt', label: 'Date and time', type: 'datetime-local', required: true },
     { name: 'endsAt', label: 'End time', type: 'datetime-local' },
     { name: 'location', label: 'Location or meeting link' },
     { name: 'meetingUrl', label: 'Meeting URL', type: 'url' },
@@ -112,7 +114,9 @@ function getRecordField(record: EditableRecord | undefined, field: string): unkn
 }
 
 function inputValue(value: unknown, type: Field['type']) {
+  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) return value.join(', ')
   if (typeof value !== 'string') return ''
+  if (type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value
   if (type === 'date' || type === 'datetime-local') {
     const date = new Date(value)
     if (Number.isNaN(date.getTime())) return ''
@@ -124,25 +128,72 @@ function inputValue(value: unknown, type: Field['type']) {
 
 export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDialogProps) {
   const { data, addRecord, updateRecord } = useCareerData()
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const dialogRef = useRef<HTMLElement | null>(null)
+  const closeRef = useRef(onClose)
   const record = getCurrentRecord(type, recordId, data)
   const fields = fieldsByType[type]
+
+  useEffect(() => {
+    closeRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const dialog = dialogRef.current
+    const focusable = () => [...(dialog?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])]
+    const firstField = dialog?.querySelector<HTMLElement>('input:not([disabled]), select:not([disabled]), textarea:not([disabled])')
+    ;(firstField ?? focusable()[0])?.focus()
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeRef.current()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = focusable()
+      const first = items[0]
+      const last = items.at(-1)
+      if (!first || !last) {
+        event.preventDefault()
+      } else if (event.shiftKey && (document.activeElement === first || !dialog?.contains(document.activeElement))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog?.contains(document.activeElement))) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      if (previouslyFocused?.isConnected) previouslyFocused.focus()
+    }
+  }, [])
+
   const save = (formData: FormData) => {
     const values = Object.fromEntries(fields.map((field) => [field.name, String(formData.get(field.name) ?? '')]))
-    const required = fields.find((field) => field.required)
-    const validator = z.object({ [required?.name ?? '']: z.string().trim().min(1, `Enter a ${labels[type]} ${required?.name === 'name' ? 'name' : required?.name === 'title' ? 'title' : 'job title'}`) })
-    const result = validator.safeParse(values)
+    const result = createRecordSchema(type, data).safeParse(values)
     if (!result.success) {
-      document.getElementById(`error-${type}`)?.replaceChildren(result.error.issues[0]?.message ?? 'Check the required fields.')
+      const nextErrors: Record<string, string> = {}
+      for (const issue of result.error.issues) {
+        const fieldName = issue.path[0]
+        if (typeof fieldName === 'string') nextErrors[fieldName] ??= issue.message
+      }
+      setFieldErrors(nextErrors)
       return
     }
-    if (recordId) updateRecord(type, recordId, values)
-    else addRecord(type, values)
+    setFieldErrors({})
+    if (recordId) updateRecord(type, recordId, result.data)
+    else addRecord(type, result.data)
     onClose()
   }
 
   return (
     <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <section className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <section ref={dialogRef} className="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <div className="dialog-heading">
           <div>
             <p className="eyebrow">{recordId ? 'Edit record' : 'New record'}</p>
@@ -150,45 +201,47 @@ export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDia
           </div>
           <button className="icon-button" type="button" aria-label="Close dialog" onClick={onClose}>×</button>
         </div>
-        <form action={(formData) => save(formData)}>
+        <form onSubmit={(event) => { event.preventDefault(); save(new FormData(event.currentTarget)) }}>
           <div className="form-grid">
             {fields.map((field) => (
               <label className={field.type === 'textarea' ? 'form-field full-width' : 'form-field'} key={field.name}>
                 <span>{field.label}{field.required ? ' *' : ''}</span>
                 {field.company ? (
-                  <select name={field.name} required={field.required} defaultValue={String(getRecordField(record, field.name) ?? '')}>
+                  <select name={field.name} required={field.required} aria-invalid={Boolean(fieldErrors[field.name])} aria-describedby={fieldErrors[field.name] ? `error-${type}-${field.name}` : undefined} defaultValue={String(getRecordField(record, field.name) ?? '')}>
                     <option value="">No company</option>
                     {data.companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
                   </select>
                 ) : field.relation === 'contact' ? (
-                  <select name={field.name} defaultValue={String(getRecordField(record, field.name) ?? '')}>
+                  <select name={field.name} aria-invalid={Boolean(fieldErrors[field.name])} aria-describedby={fieldErrors[field.name] ? `error-${type}-${field.name}` : undefined} defaultValue={String(getRecordField(record, field.name) ?? '')}>
                     <option value="">No contact</option>
                     {data.contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.name}</option>)}
                   </select>
                 ) : field.relation === 'application' ? (
-                  <select name={field.name} defaultValue={String(getRecordField(record, field.name) ?? '')}>
+                  <select name={field.name} aria-invalid={Boolean(fieldErrors[field.name])} aria-describedby={fieldErrors[field.name] ? `error-${type}-${field.name}` : undefined} defaultValue={String(getRecordField(record, field.name) ?? '')}>
                     <option value="">No application</option>
                     {data.applications.map((application) => <option key={application.id} value={application.id}>{application.jobTitle}</option>)}
                   </select>
                 ) : field.type === 'select' ? (
-                  <select name={field.name} defaultValue={String(getRecordField(record, field.name) ?? field.options?.[0] ?? '')}>
+                  <select name={field.name} aria-invalid={Boolean(fieldErrors[field.name])} aria-describedby={fieldErrors[field.name] ? `error-${type}-${field.name}` : undefined} defaultValue={String(getRecordField(record, field.name) ?? field.options?.[0] ?? '')}>
                     {field.options?.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 ) : field.type === 'textarea' ? (
-                  <textarea name={field.name} defaultValue={inputValue(getRecordField(record, field.name), field.type)} />
+                  <textarea name={field.name} aria-invalid={Boolean(fieldErrors[field.name])} aria-describedby={fieldErrors[field.name] ? `error-${type}-${field.name}` : undefined} defaultValue={inputValue(getRecordField(record, field.name), field.type)} />
                 ) : (
                   <input
                     name={field.name}
                     type={field.type ?? 'text'}
                     required={field.required}
+                    aria-invalid={Boolean(fieldErrors[field.name])}
+                    aria-describedby={fieldErrors[field.name] ? `error-${type}-${field.name}` : undefined}
                     defaultValue={inputValue(getRecordField(record, field.name), field.type) || (!record && initialDate && field.name === 'dueAt' ? format(initialDate, 'yyyy-MM-dd') : !record && initialDate && field.name === 'startsAt' ? format(initialDate, "yyyy-MM-dd'T'HH:mm") : '')}
                     placeholder={field.placeholder}
                   />
                 )}
+                {fieldErrors[field.name] && <span id={`error-${type}-${field.name}`} className="form-error" role="alert">{fieldErrors[field.name]}</span>}
               </label>
             ))}
           </div>
-          <p id={`error-${type}`} className="form-error" role="alert" />
           <div className="dialog-actions">
             <button className="button button-secondary" type="button" onClick={onClose}>Cancel</button>
             <button className="button button-primary" type="submit">{recordId ? 'Save changes' : `Add ${labels[type]}`}</button>

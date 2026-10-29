@@ -13,13 +13,20 @@ export function getPrismaClient() {
   if (!config.DATABASE_URL) throw new Error('DATABASE_URL must be configured before database access.')
   if (prisma) return prisma
 
-  const certPath = resolve(dirname(fileURLToPath(import.meta.url)), '../../prod-ca-2021.crt')
-  const ca = fs.existsSync(certPath) ? fs.readFileSync(certPath, 'utf8') : undefined
-
   const parsed = new URL(config.DATABASE_URL)
-  const isSupabase = parsed.hostname.includes('supabase.co') || parsed.hostname.includes('supabase.com')
+  const isSupabase = ['.supabase.co', '.supabase.com'].some((suffix) => parsed.hostname.endsWith(suffix))
 
-  if (ca && isSupabase) {
+  if (isSupabase) {
+    const moduleDirectory = dirname(fileURLToPath(import.meta.url))
+    const certPaths = [
+      resolve(moduleDirectory, '../prod-ca-2021.crt'),
+      resolve(moduleDirectory, '../../prod-ca-2021.crt'),
+    ]
+    const certPath = certPaths.find(fs.existsSync)
+    if (!certPath) {
+      throw new Error('The Supabase PostgreSQL CA certificate is missing; refusing an unverified TLS connection.')
+    }
+
     pool = new pg.Pool({
       host: parsed.hostname,
       port: Number(parsed.port) || 5432,
@@ -28,7 +35,7 @@ export function getPrismaClient() {
       database: parsed.pathname.replace(/^\//, '') || 'postgres',
       ssl: {
         rejectUnauthorized: true,
-        ca,
+        ca: fs.readFileSync(certPath, 'utf8'),
         servername: parsed.hostname,
       },
     })

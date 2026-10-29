@@ -25,6 +25,7 @@ export interface Application {
   nextFollowUpAt: string
   location: string
   jobDescription: string
+  prepNotes: string
   jobUrl: string
   applicationUrl: string
   jobType: string
@@ -79,9 +80,12 @@ export interface CareerEvent {
 
 export interface Activity {
   id: string
+  type: string
   description: string
   occurredAt: string
   companyId: string
+  contactId: string
+  applicationId: string
 }
 
 export interface CareerData {

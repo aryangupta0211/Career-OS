@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node --input-type=module -e \"import { copyFileSync } from 'node:fs'; copyFileSync('prod-ca-2021.crt', 'dist/prod-ca-2021.crt')\"",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:validate": "prisma validate",
@@ -16,6 +16,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "@supabase/supabase-js": "^2.118.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
