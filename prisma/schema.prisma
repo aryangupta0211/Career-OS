@@ -21,6 +21,22 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum OpportunityStatus {
+  IDEA
+  ACTIVE
+  CLOSED
+  REJECTED
+  ACCEPTED
+}
+
+  SAVED
+  APPLIED
+  ASSESSMENT
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
 enum JobType {
   FULL_TIME
   PART_TIME
@@ -54,6 +70,42 @@ enum EventType {
   OTHER
 }
 
+enum VaultFileCategory {
+  RESUME
+  JOB_DESCRIPTION
+  COVER_LETTER
+  PORTFOLIO
+  CERTIFICATE
+  SUPPORTING_DOCUMENT
+  OTHER
+}
+
+enum VaultFileStatus {
+  ACTIVE
+  TRASHED
+  DELETED
+}
+
+enum DocumentRole {
+  SUBMITTED_RESUME
+  COVER_LETTER
+  JOB_DESCRIPTION
+  PORTFOLIO
+  CERTIFICATE
+  SUPPORTING_DOCUMENT
+  OTHER
+}
+
+enum CompanyResourceType {
+  OFFICIAL_WEBSITE
+  CAREERS_PAGE
+  LINKEDIN
+  JOB_POSTING
+  COMPANY_BLOG
+  DOCUMENTATION
+  OTHER
+}
+
 model User {
   id             String           @id @default(cuid())
   supabaseAuthId String?          @unique @db.Uuid
@@ -76,11 +128,49 @@ model User {
   tasks        Task[]
   events       Event[]
   activities   Activity[]
+  vaultFiles           VaultFile[]
+  resumeGroups         ResumeGroup[]
+  resumeVersions       ResumeVersion[]
+  jobDescriptions      JobDescription[]
+  companyResources     CompanyResource[]
+  applicationDocuments ApplicationDocument[]
+  companyDocuments     CompanyDocument[]
+  storageUsage         StorageUsage?
   createdAt    DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
 }
 
 model Company {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  normalizedName String @default("")
+  website      String?
+  websiteDomain String? @default("")
+  careersUrl   String?
+  linkedinUrl  String?
+  industry     String?
+  location     String?
+  size         String?
+  notes        String?
+  tags         String[]         @default([])
+  contacts     Contact[]
+  applications JobApplication[]
+  tasks        Task[]
+  events       Event[]
+  activities   Activity[]
+  jobDescriptions  JobDescription[]
+  companyResources CompanyResource[]
+  companyDocuments CompanyDocument[]
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, name])
+  @@index([userId, industry])
+  @@unique([id, userId])
+  @@unique([userId, normalizedName, websiteDomain])
+}
   id           String           @id @default(cuid())
   userId       String
   user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -98,6 +188,9 @@ model Company {
   tasks        Task[]
   events       Event[]
   activities   Activity[]
+  jobDescriptions  JobDescription[]
+  companyResources CompanyResource[]
+  companyDocuments CompanyDocument[]
   createdAt    DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
 
@@ -162,6 +255,8 @@ model JobApplication {
   tasks           Task[]
   events          Event[]
   activities      Activity[]
+  jobDescriptions      JobDescription[]
+  applicationDocuments ApplicationDocument[]
   createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime          @updatedAt @db.Timestamptz(3)
 
@@ -240,4 +335,187 @@ model Activity {
   @@index([userId, occurredAt])
   @@index([userId, type, occurredAt])
   @@index([userId, companyId])
+}
+
+model VaultFile {
+  id                   String                @id @default(cuid())
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalFilename     String
+  displayName          String
+  storagePath          String                @unique
+  mimeType             String
+  extension            String
+  fileSizeBytes        Int
+  sha256Hash           String?
+  category             VaultFileCategory     @default(OTHER)
+  description          String?
+  tags                 String[]              @default([])
+  uploadSource         String?
+  status               VaultFileStatus       @default(ACTIVE)
+  deletedAt            DateTime?             @db.Timestamptz(3)
+  resumeVersions       ResumeVersion[]
+  jobDescriptions      JobDescription[]
+  applicationDocuments ApplicationDocument[]
+  companyDocuments     CompanyDocument[]
+  createdAt            DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime              @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, status, createdAt])
+  @@index([userId, category])
+  @@index([userId, displayName])
+  @@unique([id, userId])
+}
+
+model ResumeGroup {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  targetRole  String?
+  description String?
+  skills      String[]        @default([])
+  isArchived  Boolean         @default(false)
+  versions    ResumeVersion[]
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, isArchived])
+  @@index([userId, name])
+  @@unique([id, userId])
+}
+
+model ResumeVersion {
+  id                   String                @id @default(cuid())
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeGroupId        String
+  resumeGroup          ResumeGroup           @relation(fields: [resumeGroupId, userId], references: [id, userId], onDelete: Cascade)
+  vaultFileId          String
+  vaultFile            VaultFile             @relation(fields: [vaultFileId, userId], references: [id, userId], onDelete: Restrict)
+  versionNumber        Int
+  versionLabel         String
+  description          String?
+  skills               String[]              @default([])
+  isCurrent            Boolean               @default(false)
+  applicationDocuments ApplicationDocument[]
+  createdAt            DateTime              @default(now()) @db.Timestamptz(3)
+
+  @@unique([id, userId])
+  @@unique([resumeGroupId, versionNumber])
+  @@index([userId, isCurrent])
+  @@index([userId, resumeGroupId])
+  @@index([vaultFileId])
+}
+
+model Opportunity {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId    String?
+  company      Company?         @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  title        String
+  description  String?
+  status       OpportunityStatus @default(IDEA)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, status])
+  @@index([userId, companyId])
+  @@unique([id, userId])
+}
+
+  id                  String            @id @default(cuid())
+  userId              String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId           String?
+  company             Company?          @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  applicationId       String?
+  application         JobApplication?   @relation(fields: [applicationId, userId], references: [id, userId], onDelete: Restrict)
+  vaultFileId         String?
+  vaultFile           VaultFile?        @relation(fields: [vaultFileId, userId], references: [id, userId], onDelete: Restrict)
+  title               String
+  location            String?
+  experienceLevel     String?
+  employmentType      String?
+  sourceUrl           String?
+  careerPageUrl       String?
+  applicationDeadline DateTime?         @db.Timestamptz(3)
+  responsibilities    String?
+  requiredSkills      String[]          @default([])
+  preferredSkills     String[]          @default([])
+  descriptionText     String?
+  notes               String?
+  companyDocuments    CompanyDocument[]
+  createdAt           DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime          @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, companyId])
+  @@index([userId, applicationId])
+  @@index([userId, title])
+  @@unique([id, userId])
+}
+
+model CompanyResource {
+  id           String              @id @default(cuid())
+  userId       String
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId    String
+  company      Company             @relation(fields: [companyId, userId], references: [id, userId], onDelete: Cascade)
+  title        String
+  url          String
+  description  String?
+  resourceType CompanyResourceType @default(OTHER)
+  createdAt    DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime            @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, companyId])
+  @@unique([id, userId])
+}
+
+model ApplicationDocument {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId   String
+  application     JobApplication @relation(fields: [applicationId, userId], references: [id, userId], onDelete: Cascade)
+  vaultFileId     String
+  vaultFile       VaultFile      @relation(fields: [vaultFileId, userId], references: [id, userId], onDelete: Restrict)
+  resumeVersionId String?
+  resumeVersion   ResumeVersion? @relation(fields: [resumeVersionId, userId], references: [id, userId], onDelete: Restrict)
+  documentRole    DocumentRole   @default(OTHER)
+  notes           String?
+  createdAt       DateTime       @default(now()) @db.Timestamptz(3)
+
+  @@index([userId, applicationId])
+  @@index([userId, vaultFileId])
+  @@unique([id, userId])
+}
+
+model CompanyDocument {
+  id               String          @id @default(cuid())
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId        String
+  company          Company         @relation(fields: [companyId, userId], references: [id, userId], onDelete: Cascade)
+  vaultFileId      String?
+  vaultFile        VaultFile?      @relation(fields: [vaultFileId, userId], references: [id, userId], onDelete: Cascade)
+  jobDescriptionId String?
+  jobDescription   JobDescription? @relation(fields: [jobDescriptionId, userId], references: [id, userId], onDelete: Cascade)
+  notes            String?
+  createdAt        DateTime        @default(now()) @db.Timestamptz(3)
+
+  @@index([userId, companyId])
+  @@index([userId, vaultFileId])
+  @@index([userId, jobDescriptionId])
+  @@unique([id, userId])
+}
+
+model StorageUsage {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usedBytes BigInt   @default(0)
+  fileCount Int      @default(0)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
 }

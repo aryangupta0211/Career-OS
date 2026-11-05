@@ -1,0 +1,775 @@
+/* CareerOS Vault Styles */
+
+.vault-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 34px 48px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.vault-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.vault-title-group h1 {
+  font-family: var(--sans-display);
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+  color: var(--ink);
+  margin: 0 0 4px 0;
+}
+
+.vault-title-group p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.vault-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Sub-navigation tabs */
+.vault-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.vault-tab-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  position: relative;
+  text-decoration: none;
+}
+
+.vault-tab-button:hover {
+  color: var(--ink);
+  background: var(--surface-muted);
+}
+
+.vault-tab-button.active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+}
+
+.vault-tab-badge {
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* Storage Summary Widget */
+.vault-storage-banner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  padding: 20px 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+@media (max-width: 768px) {
+  .vault-storage-banner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vault-storage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vault-storage-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.vault-progress-track {
+  width: 100%;
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.vault-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.vault-progress-bar.warning {
+  background: var(--warning);
+}
+
+.vault-progress-bar.danger {
+  background: var(--danger);
+}
+
+.vault-storage-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.vault-storage-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Quick Action Cards */
+.vault-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.vault-action-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vault-action-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(93, 91, 214, 0.08);
+}
+
+.vault-action-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #f0efff;
+  color: var(--accent);
+}
+
+.vault-action-card h3 {
+  font-size: 15px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.vault-action-card p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* All Documents Browser */
+.vault-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.vault-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  width: 280px;
+  max-width: 100%;
+}
+
+.vault-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: var(--ink);
+  width: 100%;
+}
+
+.vault-filters-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vault-select {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  outline: none;
+}
+
+/* File Table */
+.vault-table-container {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.vault-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.vault-table th {
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-muted);
+}
+
+.vault-table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.vault-table tr:last-child td {
+  border-bottom: none;
+}
+
+.vault-table tr:hover td {
+  background: var(--surface-muted);
+}
+
+.vault-file-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vault-ext-badge {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #f0efff;
+  color: var(--accent);
+  font-weight: 750;
+  font-size: 11px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.vault-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface-muted);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  text-transform: capitalize;
+}
+
+.vault-badge.resume {
+  background: #eef2ff;
+  color: #4338ca;
+  border-color: #c7d2fe;
+}
+
+.vault-badge.job_description,
+.vault-badge.jd {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.vault-badge.cover_letter,
+.vault-badge.cover {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.vault-badge.supporting_document,
+.vault-badge.supporting {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
+}
+
+.vault-badge.portfolio {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.vault-badge.certificate {
+  background: #fdf2f8;
+  color: #be185d;
+  border-color: #fbcfe8;
+}
+
+.vault-badge.current {
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* Dark mode badges */
+html[data-theme='dark'] .vault-badge.resume {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+html[data-theme='dark'] .vault-badge.job_description,
+html[data-theme='dark'] .vault-badge.jd {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme='dark'] .vault-badge.cover_letter,
+html[data-theme='dark'] .vault-badge.cover {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+html[data-theme='dark'] .vault-badge.supporting_document,
+html[data-theme='dark'] .vault-badge.supporting {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+html[data-theme='dark'] .vault-badge.portfolio {
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+html[data-theme='dark'] .vault-badge.certificate {
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+html[data-theme='dark'] .vault-badge.current {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Form controls & inputs */
+.vault-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.vault-field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.1px;
+}
+
+.vault-field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: -2px;
+}
+
+.vault-input,
+.vault-textarea,
+.vault-select-full {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vault-textarea {
+  min-height: 84px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.vault-input:focus,
+.vault-textarea:focus,
+.vault-select-full:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(93, 91, 214, 0.15);
+}
+
+html[data-theme='dark'] .vault-input,
+html[data-theme='dark'] .vault-textarea,
+html[data-theme='dark'] .vault-select-full {
+  background: var(--surface-muted);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+/* Modal and dialogs */
+.vault-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(18, 20, 29, 0.55);
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
+}
+
+.vault-modal {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+}
+
+.vault-modal.large {
+  max-width: 1060px;
+  width: 95vw;
+}
+
+.vault-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.vault-modal-header h2 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+
+.vault-modal-body {
+  padding: 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vault-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-muted);
+}
+
+/* File Details Modal Responsive Split Layout */
+.vault-detail-modal-layout {
+  display: grid;
+  grid-template-columns: 1fr 390px;
+  min-height: 540px;
+  max-height: calc(88vh - 120px);
+}
+
+.vault-detail-preview-panel {
+  background: var(--surface-muted);
+  border-right: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.vault-detail-sidebar {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+  background: var(--surface);
+}
+
+.vault-metadata-card {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.vault-metadata-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.vault-metadata-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.vault-metadata-value {
+  color: var(--ink);
+  font-weight: 550;
+  word-break: break-all;
+  text-align: right;
+}
+
+@media (max-width: 920px) {
+  .vault-detail-modal-layout {
+    grid-template-columns: 1fr;
+    max-height: none;
+    overflow-y: auto;
+  }
+  .vault-detail-preview-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    min-height: 350px;
+  }
+}
+
+/* Drag-and-drop zone */
+.vault-dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-muted);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.vault-dropzone:hover, .vault-dropzone.dragging {
+  border-color: var(--accent);
+  background: rgba(93, 91, 214, 0.06);
+}
+
+.vault-dropzone-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* Resume groups and version history */
+.resume-group-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.resume-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.resume-versions-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.resume-version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.15s ease;
+}
+
+.resume-version-row:last-child {
+  border-bottom: none;
+}
+
+.resume-version-row:hover {
+  background: var(--surface-muted);
+}
+
+.version-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.version-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.version-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Job Description Cards */
+.jd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.jd-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  gap: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.jd-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.jd-skills-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-chip {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--surface-muted);
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* Company Resources Tab */
+.company-resources-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.resource-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.resource-link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.resource-link-item:hover {
+  border-color: var(--accent);
+}
+

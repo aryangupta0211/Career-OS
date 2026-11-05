@@ -7,6 +7,8 @@ import { getDatabaseStatus } from './db/status.js'
 import { authRouter } from './auth/provisionRoute.js'
 import { dataRouter } from './data/routes.js'
 import { profileRouter } from './profile/routes.js'
+import { vaultRouter } from './vault/routes.js'
+import { StorageProviderError } from './vault/storage.js'
 
 export const app = express()
 
@@ -20,6 +22,7 @@ app.use(express.json({ limit: '1mb' }))
 app.use('/api/auth', authRouter)
 app.use('/api/data', dataRouter)
 app.use('/api/profile', profileRouter)
+app.use('/api/vault', vaultRouter)
 
 app.get('/api/health', (_request, response) => {
   response.json({
@@ -35,6 +38,11 @@ app.use((_request, response) => {
 })
 
 export const errorHandler: ErrorRequestHandler = (error: unknown, _request, response, _next) => {
+  if (error instanceof StorageProviderError) {
+    response.req.log.error({ requestId: response.req.id, code: error.code, err: error.cause }, 'Vault storage operation failed')
+    response.status(503).json({ error: { code: error.code, message: error.safeMessage, requestId: response.req.id } })
+    return
+  }
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2022') {
     response.req.log.error({ prismaCode: error.code }, 'Database schema is missing a field required by this API version')
     response.status(503).json({

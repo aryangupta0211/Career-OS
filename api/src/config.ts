@@ -20,6 +20,12 @@ const environmentSchema = z.object({
   DATABASE_URL: z.string().url().refine(isPostgreSQLUrl, 'DATABASE_URL must use PostgreSQL').optional(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_PUBLISHABLE_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  VAULT_STORAGE_BUCKET: z.string().default('careeros-vault'),
+  VAULT_MAX_FILE_SIZE_BYTES: z.coerce.number().int().positive().default(20 * 1024 * 1024),
+  VAULT_USER_QUOTA_BYTES: z.coerce.number().int().positive().default(100 * 1024 * 1024),
+  VAULT_PROJECT_QUOTA_BYTES: z.coerce.number().int().positive().default(1024 * 1024 * 1024),
+  VAULT_SIGNED_URL_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(300),
 }).superRefine((values, context) => {
   if (Boolean(values.SUPABASE_URL) !== Boolean(values.SUPABASE_PUBLISHABLE_KEY)) {
     context.addIssue({ code: 'custom', path: ['SUPABASE_URL'], message: 'SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must be configured together.' })

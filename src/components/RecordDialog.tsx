@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { useCareerData } from '../context/useCareerData'
 import { createRecordSchema } from '../lib/recordValidation'
 import type { Application, CareerEvent, Company, Contact, FollowUpTask, RecordType } from '../types'
+import { CompanyResourcesTab } from './vault/CompanyResourcesTab'
 
 interface RecordDialogProps {
   type: RecordType
@@ -129,6 +130,7 @@ function inputValue(value: unknown, type: Field['type']) {
 export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDialogProps) {
   const { data, addRecord, updateRecord } = useCareerData()
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [activeCompanyTab, setActiveCompanyTab] = useState<'details' | 'resources'>('details')
   const dialogRef = useRef<HTMLElement | null>(null)
   const closeRef = useRef(onClose)
   const record = getCurrentRecord(type, recordId, data)
@@ -201,6 +203,34 @@ export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDia
           </div>
           <button className="icon-button" type="button" aria-label="Close dialog" onClick={onClose}>×</button>
         </div>
+        {type === 'company' && recordId && (
+          <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--line)', marginBottom: '16px' }}>
+            <button
+              type="button"
+              className={`vault-tab-button ${activeCompanyTab === 'details' ? 'active' : ''}`}
+              style={{ fontSize: '13px', padding: '8px 12px' }}
+              onClick={() => setActiveCompanyTab('details')}
+            >
+              Company Details
+            </button>
+            <button
+              type="button"
+              className={`vault-tab-button ${activeCompanyTab === 'resources' ? 'active' : ''}`}
+              style={{ fontSize: '13px', padding: '8px 12px' }}
+              onClick={() => setActiveCompanyTab('resources')}
+            >
+              Vault Resources & Documents
+            </button>
+          </div>
+        )}
+        {type === 'company' && recordId && activeCompanyTab === 'resources' ? (
+          <div style={{ padding: '0 4px 16px' }}>
+            <CompanyResourcesTab
+              companyId={recordId}
+              companyName={(record as Company)?.name || 'Company'}
+            />
+          </div>
+        ) : (
         <form onSubmit={(event) => { event.preventDefault(); save(new FormData(event.currentTarget)) }}>
           <div className="form-grid">
             {fields.map((field) => (
@@ -247,6 +277,7 @@ export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDia
             <button className="button button-primary" type="submit">{recordId ? 'Save changes' : `Add ${labels[type]}`}</button>
           </div>
         </form>
+        )}
       </section>
     </div>
   )

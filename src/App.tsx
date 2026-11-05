@@ -16,6 +16,7 @@ const TasksPage = lazy(() => import('./pages/DirectoryPages').then((module) => (
 const CalendarPage = lazy(() => import('./pages/DirectoryPages').then((module) => ({ default: module.CalendarPage })))
 const SettingsPage = lazy(() => import('./pages/DirectoryPages').then((module) => ({ default: module.SettingsPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })))
+const VaultPage = lazy(() => import('./pages/VaultPage').then((module) => ({ default: module.VaultPage })))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -53,6 +54,8 @@ export default function App() {
                   <Route path="calendar" element={<CalendarPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="profile" element={<ProfilePage />} />
+                  <Route path="vault" element={<VaultPage />} />
+                  <Route path="vault/:tab" element={<VaultPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Route>
               </Routes>

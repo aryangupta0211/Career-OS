@@ -2,8 +2,17 @@ import { app } from './app.js'
 import { config } from './config.js'
 import { disconnectPrismaClient, getPrismaClient } from './db/client.js'
 import { setDatabaseStatus } from './db/status.js'
+import { getStorageProviderDiagnostic } from './vault/storage.js'
 
 async function startServer() {
+  try {
+    const storage = getStorageProviderDiagnostic()
+    console.info(`Vault storage provider: ${storage.provider}; bucket: ${storage.bucket}`)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unknown error'
+    console.error(`Vault storage is unavailable at startup: ${message}`)
+  }
+
   if (config.DATABASE_URL) {
     setDatabaseStatus('configured')
     try {

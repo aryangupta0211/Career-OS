@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } fr
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell, BriefcaseBusiness, Building2, CalendarDays, CheckSquare, ChevronDown, ChevronLeft,
-  ChevronRight, CircleHelp, LayoutDashboard, LogOut, Moon, Plus, Search, Settings, Sun, Users, X,
+  ChevronRight, CircleHelp, FolderArchive, LayoutDashboard, LogOut, Moon, Plus, Search, Settings, Sun, Users, X,
 } from 'lucide-react'
 import { getCompanyName } from '../data/demo'
 import { useCareerData } from '../context/useCareerData'
@@ -18,6 +18,7 @@ const navigation = [
   { label: 'Contacts', to: '/contacts', icon: Users },
   { label: 'Tasks', to: '/tasks', icon: CheckSquare },
   { label: 'Calendar', to: '/calendar', icon: CalendarDays },
+  { label: 'Vault', to: '/vault', icon: FolderArchive },
 ]
 
 const addOptions: { type: RecordType; label: string; icon: typeof BriefcaseBusiness }[] = [
@@ -37,6 +38,11 @@ const pathTitles: Record<string, string> = {
   '/calendar': 'Calendar',
   '/settings': 'Settings',
   '/profile': 'My profile',
+  '/vault': 'Career Vault',
+  '/vault/resumes': 'Resume Vault',
+  '/vault/jobs': 'Job Descriptions',
+  '/vault/all': 'All Documents',
+  '/vault/trash': 'Vault Trash',
 }
 
 type Dropdown = 'profile-top' | 'profile-sidebar' | 'notifications' | 'quick-add' | null
