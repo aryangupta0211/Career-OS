@@ -54,6 +54,7 @@ describe('API career data provider', () => {
       signIn: vi.fn(),
       requestPasswordReset: vi.fn(),
       updatePassword: vi.fn(),
+      updateDisplayName: vi.fn(),
       signOut: vi.fn(),
       retryProvisioning: vi.fn(),
     }
@@ -97,6 +98,7 @@ describe('API career data provider', () => {
       signIn: vi.fn(),
       requestPasswordReset: vi.fn(),
       updatePassword: vi.fn(),
+      updateDisplayName: vi.fn(),
       signOut: vi.fn(),
       retryProvisioning: vi.fn(),
     }
@@ -144,6 +146,7 @@ describe('API career data provider', () => {
       signIn: vi.fn(),
       requestPasswordReset: vi.fn(),
       updatePassword: vi.fn(),
+      updateDisplayName: vi.fn(),
       signOut: vi.fn(),
       retryProvisioning: vi.fn(),
     }
@@ -200,6 +203,7 @@ describe('API career data provider', () => {
       signIn: vi.fn(),
       requestPasswordReset: vi.fn(),
       updatePassword: vi.fn(),
+      updateDisplayName: vi.fn(),
       signOut: vi.fn(),
       retryProvisioning: vi.fn(),
     }

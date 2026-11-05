@@ -100,4 +100,5 @@ export interface CareerData {
 export type RecordType = 'company' | 'application' | 'contact' | 'task' | 'event'
 export interface AppShellContext {
   openAdd: (type: RecordType, initialDate?: Date) => void
+  setProfileUnsavedChanges: (hasChanges: boolean) => void
 }

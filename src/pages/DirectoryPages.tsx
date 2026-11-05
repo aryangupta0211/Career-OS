@@ -90,12 +90,12 @@ export function DirectoryPage() {
           </div>
         </div>
         {filteredRows.length ? <div className="directory-table-wrap"><table className="directory-table"><thead><tr><th>{config.type === 'application' ? 'Role' : 'Name'}</th><th>{config.type === 'company' ? 'Industry' : 'Company'}</th><th>{config.type === 'application' ? 'Status' : config.type === 'contact' ? 'Connection' : 'Size'}</th><th>{config.type === 'company' ? 'Location' : config.type === 'contact' ? 'Last contacted' : 'Applied'}</th><th /></tr></thead>
-          <tbody>{filteredRows.map((row) => <tr key={row.id} onClick={() => setEditing(row.id)}>
-            <td><div className="company-cell"><span className={`company-avatar avatar-${row.id.charCodeAt(row.id.length - 1) % 7}`}>{row.name.slice(0, 1)}</span><span><strong>{row.name}</strong><small>{row.type === 'company' ? row.location : row.subtitle}</small></span></div></td>
+          <tbody>{filteredRows.map((row) => <tr key={row.id}>
+            <td><button className="company-cell directory-row-open" aria-label={`Edit ${row.name}`} onClick={() => setEditing(row.id)}><span className="company-avatar">{row.name.slice(0, 1)}</span><span><strong>{row.name}</strong><small>{row.type === 'company' ? row.location : row.subtitle}</small></span></button></td>
             <td>{row.type === 'company' ? row.subtitle : row.company}</td>
             <td>{row.status ? <span className={`status-badge status-${row.status.toLowerCase()}`}><i />{row.status}</span> : row.company}</td>
             <td className="date-cell">{row.type === 'company' ? row.location : row.date ? format(parseISO(row.date), 'MMM d, yyyy') : '—'}</td>
-            <td><div className="row-actions"><button className="row-action-button" onClick={(event) => { event.stopPropagation(); setEditing(row.id) }}>Edit</button><button className="row-delete-button" aria-label={`Delete ${row.name}`} onClick={(event) => { event.stopPropagation(); remove(row) }}><Trash2 size={14} /></button></div></td>
+            <td><div className="row-actions"><button className="row-action-button" onClick={() => setEditing(row.id)}>Edit</button><button className="row-delete-button" aria-label={`Delete ${row.name}`} onClick={() => remove(row)}><Trash2 size={14} /></button></div></td>
           </tr>)}</tbody></table></div> : <div className="directory-empty"><span><Search size={20} /></span><h3>{rows.length ? 'No matching records' : `No ${config.title.toLowerCase()} yet`}</h3><p>{rows.length ? 'Try adjusting your search or filters.' : `Add your first ${config.type} to start organizing your career search.`}</p>{!rows.length && <button className="button button-secondary" onClick={() => openAdd(config.type)}><Plus size={15} /> {config.addLabel}</button>}</div>}
       </div>
       {editing && <RecordDialog type={config.type} recordId={editing} onClose={() => setEditing(null)} />}

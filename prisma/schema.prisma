@@ -59,6 +59,17 @@ model User {
   supabaseAuthId String?          @unique @db.Uuid
   name           String
   email        String           @unique
+  firstName      String?
+  lastName       String?
+  phone          String?
+  location       String?
+  headline       String?
+  bio            String?
+  currentRole    String?
+  skills         String[]         @default([])
+  linkedinUrl    String?
+  githubUrl      String?
+  portfolioUrl   String?
   companies    Company[]
   contacts     Contact[]
   applications JobApplication[]

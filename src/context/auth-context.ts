@@ -19,6 +19,7 @@ export interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
   updatePassword: (password: string) => Promise<void>
+  updateDisplayName: (name: string) => Promise<void>
   signOut: () => Promise<void>
   retryProvisioning: () => void
 }

@@ -6,6 +6,7 @@ import { config } from './config.js'
 import { getDatabaseStatus } from './db/status.js'
 import { authRouter } from './auth/provisionRoute.js'
 import { dataRouter } from './data/routes.js'
+import { profileRouter } from './profile/routes.js'
 
 export const app = express()
 
@@ -18,6 +19,7 @@ app.use(pinoHttp({
 app.use(express.json({ limit: '1mb' }))
 app.use('/api/auth', authRouter)
 app.use('/api/data', dataRouter)
+app.use('/api/profile', profileRouter)
 
 app.get('/api/health', (_request, response) => {
   response.json({

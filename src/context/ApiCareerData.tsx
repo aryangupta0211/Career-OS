@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { useAuth } from './auth-context'
 import { CareerDataContext, type CareerDataContextValue } from './careerDataContext'
 import type { CareerData, RecordType } from '../types'
+import { ApiResponseError, apiErrorMessage, readJsonBody } from '../lib/api'
 
 const emptyData: CareerData = {
   companies: [], applications: [], contacts: [], tasks: [], events: [], activities: [],
@@ -42,32 +43,12 @@ const apiDataSchema = z.object({
   })),
 })
 
-class ApiResponseError extends Error {
-  readonly status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.name = 'ApiResponseError'
-    this.status = status
-  }
-}
-
 async function responseError(response: Response) {
-  let message = `The server request failed (${response.status}).`
   try {
-    const body: unknown = await response.json()
-    if (typeof body === 'object' && body !== null && 'error' in body
-      && typeof body.error === 'object' && body.error !== null
-      && 'message' in body.error && typeof body.error.message === 'string') {
-      message = body.error.message
-    } else if (typeof body === 'object' && body !== null
-      && 'error' in body && typeof body.error === 'string') {
-      message = body.error
-    }
+    return new ApiResponseError(apiErrorMessage(await readJsonBody(response), `The server request failed (${response.status}).`), response.status)
   } catch {
-    message = `The server request failed (${response.status}) with an unreadable error response.`
+    return new ApiResponseError(`The server request failed (${response.status}) with an unreadable error response.`, response.status)
   }
-  return new ApiResponseError(message, response.status)
 }
 
 function requestFailureMessage(error: unknown, operation: 'load' | 'save') {
@@ -85,7 +66,7 @@ function requestFailureMessage(error: unknown, operation: 'load' | 'save') {
 async function loadCareerData(token: string): Promise<CareerData> {
   const response = await fetch('/api/data', { headers: { Authorization: `Bearer ${token}` } })
   if (!response.ok) throw await responseError(response)
-  const payload: unknown = await response.json()
+  const payload = await readJsonBody(response)
   const parsed = apiDataSchema.safeParse(payload)
   if (!parsed.success) throw new Error('The server returned data in an unsupported format.')
   return parsed.data

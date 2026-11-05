@@ -75,6 +75,7 @@ npm run prisma:migrate:deploy
 - Deleting a user cascades to the user's records. The demo provider preserves the current UX by unlinking optional references to a deleted company, contact, or application before removing that item. Database-backed deletion must perform the same unlink-and-delete operation in one Prisma transaction; foreign-key restrictions remain in place so a partial operation cannot silently orphan references.
 - Tasks and events are separate entities. Task due dates and event start/end values are timezone-aware PostgreSQL timestamps. Companies and contacts support PostgreSQL text-array tags.
 - IDs use CUIDs consistently. Record statuses use PostgreSQL enums; task category is optional text.
+- User profile edits are stored on the authenticated `User` row. Migration `20261105000000_add_user_profile_fields` adds optional name, contact, location, headline, bio, current role, skills, and public-profile URL fields. Review and approve it before using API profile editing. Supabase Storage is not configured, so profiles use an initials avatar.
 
 ## Demo data and authentication
 
@@ -86,12 +87,14 @@ The API reads `api/.env` relative to its config module at startup and requires t
 
 `POST /api/auth/provision` verifies a confirmed identity before creating its internal-user mapping. Authenticated `GET /api/data` reads the user's records; `POST /api/data/:kind` creates a record, and `PATCH`/`DELETE /api/data/:kind/:id` update or remove one. Supported kinds are `company`, `application`, `contact`, `task`, and `event`. The server derives `userId` from the verified mapping, validates related records against the same owner, returns owner-scoped 404s for unavailable records, and transactionally unlinks optional references before deletion. Activities are included in reads and unlinking but are not directly editable from the current UI. These endpoints use the Prisma singleton only behind authentication.
 
+Authenticated profile routes `GET /api/profile` and `PATCH /api/profile` use the same verified internal-user mapping and accept no client-supplied owner ID. The profile API validates all editable fields and does not expose authentication identifiers.
+
 ## Troubleshooting and handoff
 
 - `npm run db:check` is read-only and reports an error code without exposing the connection URL.
 - The API build copies `prod-ca-2021.crt` to `api/dist/`; Supabase database connections require that certificate and use `rejectUnauthorized: true`. The API refuses a Supabase TLS connection if the certificate is missing.
 - `GET http://localhost:3001/api/health` reports database state and the `authenticated-api` mode.
-- If an authenticated `GET /api/data` returns `DATABASE_SCHEMA_OUTDATED`, compare the deployed database with the Prisma schema using `prisma migrate status` and `prisma migrate diff`. The current configured database has all four migrations applied and no schema difference.
+- If an authenticated data or profile request returns `DATABASE_SCHEMA_OUTDATED`, compare the deployed database with the Prisma schema using `prisma migrate status` and `prisma migrate diff`. The profile migration was added after the last four-migration status check and is not applied.
 - If direct IPv6 connectivity is unavailable, use Supabase's session-pooler URI from the dashboard.
 - Keep `.env` private and rotate a database password if it was pasted into a chat, ticket, or other shared system.
 - Before public deployment, complete authenticated API integration tests, rate limiting, production CORS/secrets review, connection-pool sizing, and migration/backup procedures.

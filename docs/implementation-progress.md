@@ -63,6 +63,16 @@
 
 **Next action:** Add focused tests for API request/response behavior and owner scoping; complete runtime validation after the database and Supabase configuration decisions are made.
 
+## Profile and UI transformation (2026-11-05)
+
+- Reworked the application shell for mutually exclusive, outside-dismissable, Escape-dismissible profile, notification, and add menus. Removed the unsupported subscription label and added a persisted desktop icon-only sidebar with a mobile drawer.
+- Updated dashboard greeting to use authenticated metadata/profile/email fallbacks, made metrics link to their underlying views, improved empty/error/loading presentation, and made row actions keyboard-accessible.
+- Added authenticated `GET/PATCH /api/profile` routes. Profile fields are validated server-side and scoped only to the verified internal user; no client-supplied owner ID is accepted.
+- Added the additive `20261105000000_add_user_profile_fields` migration and Prisma fields for first/last name, phone, location, headline, bio, current role, skills, and LinkedIn/GitHub/portfolio URLs. The migration was not applied. Supabase Storage is not configured; initials are used for avatars.
+- Added a profile dashboard/editor, URL and phone validation, save/cancel and unsaved-change guards for in-app navigation and page unload, and Supabase display-name metadata synchronization.
+- Expanded shared light/dark tokens, responsive shell/calendar/profile layouts, interactive focus/disabled styles, and reduced-motion handling.
+- UI and API route tests cover menus, sidebar persistence, profile validation/persistence payloads, and verified-owner scoping. Live profile persistence, visual browser review, and cross-user integration remain unverified until the profile migration is approved and applied.
+
 ## 2026-10-29 audit and regression fixes
 
 **Status:** Safe code fixes implemented; approved schema migrations applied and verified; live authenticated CRUD remains unverified.

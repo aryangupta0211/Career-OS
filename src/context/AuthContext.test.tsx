@@ -53,6 +53,7 @@ function SessionView() {
     <p>{auth.user?.name ?? 'No authenticated account'}</p>
     <p>{auth.user?.email ?? ''}</p>
     <button onClick={() => { void auth.signOut() }}>End session</button>
+    <button onClick={() => { void auth.updateDisplayName('Taylor Updated') }}>Update display name</button>
   </>
 }
 
@@ -141,5 +142,17 @@ describe('Supabase AuthProvider session flows', () => {
     await user.click(screen.getByRole('button', { name: 'End session' }))
     await waitFor(() => expect(mocks.session).toBeNull())
     expect(await screen.findByText('No authenticated account')).toBeTruthy()
+  })
+
+  it('updates the Supabase display-name metadata used by the workspace greeting', async () => {
+    const user = userEvent.setup()
+    mocks.session = testSession
+    renderAuth('/')
+    await screen.findByText('Taylor Example')
+    await user.click(screen.getByRole('button', { name: 'Update display name' }))
+
+    await waitFor(() => expect(mocks.auth.updateUser).toHaveBeenCalledWith({
+      data: { full_name: 'Taylor Updated' },
+    }))
   })
 })

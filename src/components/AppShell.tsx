@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell, BriefcaseBusiness, Building2, CalendarDays, CheckSquare, ChevronDown, CircleHelp,
-  Command, LayoutDashboard, LogOut, Moon, Plus, Search, Settings, Sun, Users, X,
+  Bell, BriefcaseBusiness, Building2, CalendarDays, CheckSquare, ChevronDown, ChevronLeft,
+  ChevronRight, CircleHelp, LayoutDashboard, LogOut, Moon, Plus, Search, Settings, Sun, Users, X,
 } from 'lucide-react'
 import { getCompanyName } from '../data/demo'
 import { useCareerData } from '../context/useCareerData'
@@ -20,12 +20,12 @@ const navigation = [
   { label: 'Calendar', to: '/calendar', icon: CalendarDays },
 ]
 
-const addOptions: { type: RecordType; label: string }[] = [
-  { type: 'application', label: 'Application' },
-  { type: 'company', label: 'Company' },
-  { type: 'contact', label: 'Contact' },
-  { type: 'task', label: 'Task' },
-  { type: 'event', label: 'Event' },
+const addOptions: { type: RecordType; label: string; icon: typeof BriefcaseBusiness }[] = [
+  { type: 'application', label: 'Application', icon: BriefcaseBusiness },
+  { type: 'company', label: 'Company', icon: Building2 },
+  { type: 'contact', label: 'Contact', icon: Users },
+  { type: 'task', label: 'Task', icon: CheckSquare },
+  { type: 'event', label: 'Event', icon: CalendarDays },
 ]
 
 const pathTitles: Record<string, string> = {
@@ -36,7 +36,33 @@ const pathTitles: Record<string, string> = {
   '/tasks': 'Tasks & follow-ups',
   '/calendar': 'Calendar',
   '/settings': 'Settings',
+  '/profile': 'My profile',
 }
+
+type Dropdown = 'profile-top' | 'profile-sidebar' | 'notifications' | 'quick-add' | null
+const sidebarStorageKey = 'careeros-sidebar-collapsed-v1'
+
+function readSidebarPreference() {
+  try {
+    return localStorage.getItem(sidebarStorageKey) === 'true'
+  } catch (error) {
+    console.warn('CareerOS could not read the saved sidebar preference.', error)
+    return false
+  }
+}
+
+function profileName(auth: ReturnType<typeof useAuth>) {
+  const metadataName = auth.session?.user.user_metadata?.full_name
+  if (typeof metadataName === 'string' && metadataName.trim()) return metadataName.trim()
+  if (auth.user?.name.trim()) return auth.user.name.trim()
+  const emailName = auth.user?.email.split('@')[0] ?? auth.session?.user.email?.split('@')[0]
+  return emailName || 'CareerOS member'
+}
+
+function initialsFor(name: string) {
+  return name.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('')
+}
+
 export function AppShell() {
   const { data, dataLoading, dataError, dataRetryLabel, retryDataLoad } = useCareerData()
   const auth = useAuth()
@@ -44,27 +70,51 @@ export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const [quickAdd, setQuickAdd] = useState(false)
   const [addType, setAddType] = useState<RecordType | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
-  const [noticeOpen, setNoticeOpen] = useState(false)
+  const [dropdown, setDropdown] = useState<Dropdown>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarPreference)
   const [signOutError, setSignOutError] = useState('')
   const [addInitialDate, setAddInitialDate] = useState<Date | undefined>()
+  const profileHasUnsavedChanges = useRef(false)
+  const setProfileUnsavedChanges = useCallback((hasChanges: boolean) => {
+    profileHasUnsavedChanges.current = hasChanges
+  }, [])
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const menuName = profileName(auth)
+  const email = auth.user?.email ?? auth.session?.user.email ?? 'Browser-local demo'
+  const initials = initialsFor(menuName)
   const title = pathTitles[location.pathname] ?? 'CareerOS'
   const query = search.trim().toLowerCase()
 
   useEffect(() => {
-    const focusSearch = (event: KeyboardEvent) => {
+    try {
+      localStorage.setItem(sidebarStorageKey, String(sidebarCollapsed))
+    } catch (error) {
+      console.error('CareerOS could not save the sidebar preference.', error)
+    }
+  }, [sidebarCollapsed])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDropdown(null)
+        setSidebarOpen(false)
+      }
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
         searchInputRef.current?.focus()
       }
     }
-    window.addEventListener('keydown', focusSearch)
-    return () => window.removeEventListener('keydown', focusSearch)
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Element && !event.target.closest('[data-app-menu]')) setDropdown(null)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('pointerdown', handlePointerDown)
+    }
   }, [])
 
   const results = useMemo(() => {
@@ -77,79 +127,98 @@ export function AppShell() {
     return matches.slice(0, 6)
   }, [data, query])
 
+  const toggleDropdown = (next: Exclude<Dropdown, null>) => {
+    setDropdown((current) => current === next ? null : next)
+  }
+  const mayLeaveProfile = () => !profileHasUnsavedChanges.current
+    || window.confirm('You have unsaved profile changes. Leave this page and discard them?')
+  const navigateSafely = (path: string) => {
+    if (!mayLeaveProfile()) return false
+    navigate(path)
+    return true
+  }
+  const handleNavigationClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    if (!mayLeaveProfile()) event.preventDefault()
+    else closeNavigation()
+  }
   const goToSearch = (path: string) => {
-    navigate(`${path}?q=${encodeURIComponent(search.trim())}`)
+    if (!navigateSafely(`${path}?q=${encodeURIComponent(search.trim())}`)) return
     setSearch('')
   }
   const openAdd = (type: RecordType, initialDate?: Date) => {
     setAddInitialDate(initialDate)
     setAddType(type)
+    setDropdown(null)
   }
-  const displayName = auth.user?.name ?? (auth.loading ? 'Restoring session…' : 'Demo user')
-  const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('')
   const signOut = async () => {
+    if (!mayLeaveProfile()) return
     setSignOutError('')
     try {
       await auth.signOut()
+      setDropdown(null)
       navigate('/auth/login', { replace: true })
     } catch (error) {
       setSignOutError(error instanceof Error ? error.message : 'Could not sign out. Please try again.')
     }
   }
+  const closeNavigation = () => setSidebarOpen(false)
 
   return (
-    <div className="app-shell">
-      {sidebarOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
+    <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {sidebarOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={closeNavigation} />}
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="brand-row">
-          <div className="brand-mark">c</div>
-          <span>careeros</span>
-          <button className="mobile-close icon-button" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X size={17} /></button>
+          <Link className="brand-home" to="/" aria-label="CareerOS overview" onClick={closeNavigation}>
+            <span className="brand-mark">c</span><span className="brand-name">CareerOS</span>
+          </Link>
+          <button className="sidebar-collapse icon-button" aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'} onClick={() => setSidebarCollapsed((collapsed) => !collapsed)}>
+            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+          <button className="mobile-close icon-button" aria-label="Close navigation" onClick={closeNavigation}><X size={17} /></button>
         </div>
         <div className="workspace-switcher">
-          <span className="workspace-avatar">A</span>
-          <span className="workspace-copy"><strong>Personal workspace</strong><small>Free plan</small></span>
-          <ChevronDown size={15} />
+          <span className="workspace-avatar">{auth.dataMode === 'demo' ? 'D' : initials.slice(0, 1)}</span>
+          <span className="workspace-copy"><strong>{auth.dataMode === 'demo' ? 'Demo workspace' : 'Personal workspace'}</strong><small>{auth.dataMode === 'demo' ? 'Saved in this browser' : 'Private workspace'}</small></span>
         </div>
-        <div className="sidebar-section-label">WORKSPACE</div>
-        <nav className="primary-nav" aria-label="Main navigation">
-          {navigation.map(({ label, to, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === '/'} onClick={() => setSidebarOpen(false)} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-              <Icon size={17} strokeWidth={1.8} /><span>{label}</span>
-              {label === 'Tasks' && data.tasks.filter((task) => !task.done).length > 0 && <span className="nav-count">{data.tasks.filter((task) => !task.done).length}</span>}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="sidebar-section-label management-label">MANAGE</div>
-        <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}><Settings size={17} strokeWidth={1.8} /><span>Settings</span></NavLink>
+        <div className="sidebar-navigation">
+          <div className="sidebar-section-label">Workspace</div>
+          <nav className="primary-nav" aria-label="Main navigation">
+            {navigation.map(({ label, to, icon: Icon }) => (
+              <NavLink key={to} to={to} end={to === '/'} title={label} aria-label={label} onClick={handleNavigationClick} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <Icon size={18} strokeWidth={1.8} /><span>{label}</span>
+                {label === 'Tasks' && data.tasks.filter((task) => !task.done).length > 0 && <span className="nav-count">{data.tasks.filter((task) => !task.done).length}</span>}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
         <div className="sidebar-bottom">
-          {auth.dataMode === 'demo'
-            ? <div className="demo-callout"><div className="demo-dot" /><span><strong>Demo workspace</strong><small>Data stays in this browser</small></span></div>
-            : <div className="demo-callout"><div className="demo-dot" /><span><strong>Personal workspace</strong><small>{auth.user?.email}</small></span></div>}
-          <button className="user-card" onClick={() => setMenuOpen((open) => !open)}>
-            <span className="user-avatar">{initials}</span>
-            <span className="user-copy"><strong>{displayName}</strong><small>{auth.user?.email ?? (auth.loading ? 'Checking your account…' : 'Personal demo account')}</small></span>
-            <ChevronDown size={15} />
-          </button>
-          {menuOpen && <div className="user-menu">
-            <button onClick={() => { navigate('/settings'); setMenuOpen(false) }}><Settings size={15} /> Settings</button>
-            {auth.loading
-              ? <p className="auth-message" role="status">Restoring your session…</p>
-              : auth.session
-                ? <button onClick={() => { void signOut() }}><LogOut size={15} /> Sign out</button>
-                : <>
-                  <Link to="/auth/login" onClick={() => setMenuOpen(false)}>Sign in</Link>
-                  <Link to="/auth/signup" onClick={() => setMenuOpen(false)}>Create account</Link>
-                </>}
-            {signOutError && <p className="form-error" role="alert">{signOutError}</p>}
-          </div>}
+          <div className="sidebar-user-row">
+            <div className="sidebar-profile-wrap" data-app-menu>
+              <button className="user-card" aria-label="Open sidebar profile menu" aria-expanded={dropdown === 'profile-sidebar'} aria-haspopup="menu" onClick={() => toggleDropdown('profile-sidebar')}>
+                <span className="user-avatar">{initials}</span>
+                <span className="user-copy"><strong>{menuName}</strong><small>{email}</small></span>
+                <ChevronDown size={15} />
+              </button>
+              {dropdown === 'profile-sidebar' && <ProfileMenu
+                name={menuName}
+                email={email}
+                loading={auth.loading}
+                hasSession={Boolean(auth.session)}
+                signOutError={signOutError}
+                onNavigate={(path) => { if (navigateSafely(path)) { setDropdown(null); closeNavigation() } }}
+                onSignOut={() => { void signOut() }}
+              />}
+            </div>
+            <Link className="sidebar-settings icon-button" to="/settings" aria-label="Settings" title="Settings" onClick={handleNavigationClick}><Settings size={17} /></Link>
+          </div>
         </div>
       </aside>
 
       <main className="main-panel">
         <header className="topbar">
           <div className="topbar-left">
-            <button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}><Command size={18} /></button>
+            <button className="mobile-menu icon-button" aria-label="Open navigation" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)}><span className="mobile-menu-lines" /></button>
             <span className="breadcrumb-muted">Workspace</span><span className="breadcrumb-slash">/</span><span className="breadcrumb-current">{title}</span>
           </div>
           <div className="topbar-actions">
@@ -161,32 +230,26 @@ export function AppShell() {
                 {results.length ? results.map((result) => <button key={`${result.detail}-${result.label}`} onClick={() => goToSearch(result.path)}><Search size={14} /><span><strong>{result.label}</strong><small>{result.detail}</small></span></button>) : <p>No matches found</p>}
               </div>}
             </div>
-            <div className="quick-add-wrap">
-              <button className="button button-primary quick-add-button" onClick={() => setQuickAdd((open) => !open)}><Plus size={16} /> <span>Add new</span></button>
-              {quickAdd && <div className="quick-add-menu">{addOptions.map((option) => <button key={option.type} onClick={() => { setAddType(option.type); setQuickAdd(false) }}><Plus size={14} /> {option.label}</button>)}</div>}
+            <div className="quick-add-wrap" data-app-menu>
+              <button className="button button-primary quick-add-button" aria-expanded={dropdown === 'quick-add'} aria-haspopup="menu" onClick={() => toggleDropdown('quick-add')}><Plus size={16} /> <span>Add new</span></button>
+              {dropdown === 'quick-add' && <div className="quick-add-menu" role="menu">{addOptions.map(({ type, label, icon: Icon }) => <button role="menuitem" key={type} onClick={() => openAdd(type)}><Icon size={16} /> <span>{label}</span><Plus size={13} className="quick-add-item-plus" /></button>)}</div>}
             </div>
-            <div className="notice-wrap">
-              <button className="icon-button theme-toggle" aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} title={`${theme === 'light' ? 'Dark' : 'Light'} mode`} onClick={toggleTheme}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
+            <button className="icon-button theme-toggle" aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} title={`${theme === 'light' ? 'Dark' : 'Light'} mode`} onClick={toggleTheme}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
+            <div className="notice-wrap" data-app-menu>
+              <button className={`icon-button notification-button ${dropdown === 'notifications' ? 'notice-active' : ''}`} aria-label="Notifications" aria-expanded={dropdown === 'notifications'} aria-haspopup="dialog" onClick={() => toggleDropdown('notifications')}><Bell size={17} /></button>
+              {dropdown === 'notifications' && <div className="notification-popover" role="dialog" aria-label="Notifications"><strong>You’re all caught up</strong><p>Updates about upcoming interviews and follow-ups will appear here.</p><button onClick={() => { if (navigateSafely('/calendar')) setDropdown(null) }}>View calendar <span aria-hidden="true">→</span></button></div>}
             </div>
-            <div className="notice-wrap">
-              <button className={`icon-button notification-button ${noticeOpen ? 'notice-active' : ''}`} aria-label="Notifications" onClick={() => setNoticeOpen((open) => !open)}><Bell size={17} /><i /></button>
-              {noticeOpen && <div className="notification-popover"><strong>You’re all caught up</strong><p>Upcoming interviews and follow-ups will appear here.</p><button onClick={() => { navigate('/calendar'); setNoticeOpen(false) }}>View your calendar</button></div>}
-            </div>
-            <div className="top-profile-wrap">
-              <button className="top-avatar" aria-label="Open profile menu" aria-expanded={profileOpen} onClick={() => setProfileOpen((open) => !open)}>{initials}</button>
-              {profileOpen && <div className="top-profile-menu">
-                <strong>{displayName}</strong><span>{auth.user?.email ?? (auth.loading ? 'Checking your account…' : 'Personal demo account')}</span>
-                <button onClick={() => { navigate('/settings'); setProfileOpen(false) }}><Settings size={14} /> Settings</button>
-                {auth.loading
-                  ? <p className="auth-message" role="status">Restoring your session…</p>
-                  : auth.session
-                    ? <button onClick={() => { void signOut() }}><LogOut size={14} /> Sign out</button>
-                    : <>
-                      <Link to="/auth/login" onClick={() => setProfileOpen(false)}>Sign in</Link>
-                      <Link to="/auth/signup" onClick={() => setProfileOpen(false)}>Create account</Link>
-                    </>}
-                {signOutError && <p className="form-error" role="alert">{signOutError}</p>}
-              </div>}
+            <div className="top-profile-wrap" data-app-menu>
+              <button className="top-avatar" aria-label="Open profile menu" aria-expanded={dropdown === 'profile-top'} aria-haspopup="menu" onClick={() => toggleDropdown('profile-top')}>{initials}</button>
+              {dropdown === 'profile-top' && <ProfileMenu
+                name={menuName}
+                email={email}
+                loading={auth.loading}
+                hasSession={Boolean(auth.session)}
+                signOutError={signOutError}
+                onNavigate={(path) => { if (navigateSafely(path)) setDropdown(null) }}
+                onSignOut={() => { void signOut() }}
+              />}
             </div>
           </div>
         </header>
@@ -198,12 +261,36 @@ export function AppShell() {
               <button className="button button-secondary" onClick={retryDataLoad}>{dataRetryLabel}</button>
             </section>
             : dataLoading
-              ? <p className="data-status" role="status">Loading your workspace…</p>
-              : <Outlet context={{ openAdd }} />}
+              ? <div className="workspace-loading" role="status"><span className="loading-spinner" /> Loading your workspace…</div>
+              : <Outlet context={{ openAdd, setProfileUnsavedChanges }} />}
         </div>
         <footer className="app-footer"><span>CareerOS <span className="footer-dot">·</span> Your next move, organized.</span><a href="mailto:hello@careeros.example"><CircleHelp size={14} /> Help</a></footer>
       </main>
       {addType && <RecordDialog type={addType} initialDate={addInitialDate} onClose={() => { setAddType(null); setAddInitialDate(undefined) }} />}
     </div>
   )
+}
+
+function ProfileMenu({
+  name, email, loading, hasSession, signOutError, onNavigate, onSignOut,
+}: {
+  name: string
+  email: string
+  loading: boolean
+  hasSession: boolean
+  signOutError: string
+  onNavigate: (path: string) => void
+  onSignOut: () => void
+}) {
+  return <div className="profile-menu" role="menu">
+    <div className="profile-menu-identity"><span className="user-avatar">{initialsFor(name)}</span><span><strong>{name}</strong><small>{email}</small></span></div>
+    <button role="menuitem" onClick={() => onNavigate('/profile')}><Users size={15} /> View profile</button>
+    <button role="menuitem" onClick={() => onNavigate('/settings')}><Settings size={15} /> Settings</button>
+    {loading
+      ? <p className="auth-message" role="status">Restoring your session…</p>
+      : hasSession
+        ? <button role="menuitem" onClick={onSignOut}><LogOut size={15} /> Sign out</button>
+        : <div className="profile-auth-links"><Link role="menuitem" to="/auth/login">Sign in</Link><Link role="menuitem" to="/auth/signup">Create account</Link></div>}
+    {signOutError && <p className="form-error" role="alert">{signOutError}</p>}
+  </div>
 }

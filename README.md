@@ -79,17 +79,20 @@ For local Supabase Auth, set the dashboard Site URL to `http://localhost:5173` a
 
 Prisma models users, companies, contacts, job applications, tasks, events, and activity. Related records carry `userId`; composite foreign keys also enforce same-user company/contact/application ownership. User-owned records cascade only when the user is deleted. Deleting a referenced company, contact, or application is restricted until dependent links are removed or reassigned. Dates use PostgreSQL `timestamptz`; IDs use consistent CUIDs.
 
-Events and tasks remain separate records. The shared calendar derives day indicators and selected-day details from both collections; completed tasks are omitted. The schema and reviewed SQL migrations are in `prisma/`.
+Events and tasks remain separate records. The shared calendar derives day indicators and selected-day details from both collections; completed tasks are omitted. The schema and reviewed SQL migrations are in `prisma/`. A new additive profile migration, `20261105000000_add_user_profile_fields`, adds personal and professional fields to `User`; it has not been applied. Profile editing in API mode requires approval and application of this migration.
 
 ## API and authentication boundary
 
 `GET /api/health` reports API status and database connection state. `POST /api/auth/provision` verifies a confirmed Supabase identity before creating its internal mapping. `GET /api/data` returns the authenticated user's records; `POST /api/data/:kind` and `PATCH`/`DELETE /api/data/:kind/:id` perform owner-scoped operations for the singular kinds `company`, `application`, `contact`, `task`, and `event`. The server derives the owner from the verified internal mapping, checks every related record against that owner, and unlinks optional references transactionally before deleting referenced records. Client-supplied `userId` is never accepted as proof of ownership.
 
+Authenticated profile routes `GET /api/profile` and `PATCH /api/profile` use the same verified internal-user mapping and accept no client-supplied owner ID. They validate profile data server-side and do not expose internal authentication identifiers. Profile avatars use initials because Supabase Storage is not configured.
+
 ## Limitations
 
-- Last verified on 2026-10-29: after explicit project-owner approval, both feature migrations were deployed. Read-only status reports all four migrations applied, the three columns have the expected types/defaults, and Prisma reports no schema difference.
+- Last verified on 2026-10-29: after explicit project-owner approval, both feature migrations were deployed. Read-only status reported all four then-existing migrations applied with no schema difference. The profile migration added afterward has not been applied.
 - Live signup/login/email delivery and authenticated user-data CRUD have not been tested end-to-end. Use authorized test accounts before relying on live persistence or cross-user isolation.
 - Demo data is not imported into PostgreSQL.
 - Supabase environment variable names are configured locally for the frontend and API, but live signup/login/email delivery and user-data CRUD have not been tested. The database schema is current; authenticated CRUD still needs live verification.
 - No seed script, automated demo-data importer, calendar sync, or external reminders are implemented.
 - Public deployment still requires production auth/project configuration, rate limiting, CORS/secrets review, migration/backup procedures, and API integration tests.
+- Profile API persistence and avatar uploads require additional setup: apply the reviewed profile migration to an explicitly approved database; configure Supabase Storage only if avatar upload is later enabled.

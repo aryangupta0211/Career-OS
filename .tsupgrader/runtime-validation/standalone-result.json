@@ -1,0 +1,175 @@
+{
+  "planHash": "111fafe2564d0520898a22fa041574ba1e46ded8f88f0bcb468dc97d42bbafe9",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-05T17:01:08.1934604Z",
+  "retryCount": 1,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E careeros@0.0.0 test\r\n\u003E vitest run src api/src\r\n\r\n\r\n RUN  v4.1.12 E:/ARYAN/Projects/CareerOS\r\n\r\n\r\n Test Files  17 passed (17)\r\n      Tests  63 passed (63)\r\n   Start at  22:30:25\r\n   Duration  11.14s (transform 4.54s, setup 0ms, import 40.68s, tests 8.37s, environment 18.45s)\r\n\r\n",
+        "durationMs": 13543,
+        "testResults": {
+          "testFramework": "vitest",
+          "runnerDetectedFrom": "package_json",
+          "testsTotal": 63,
+          "testsPassed": 63,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": false
+        }
+      },
+      {
+        "name": "lint-passes",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E careeros@0.0.0 lint\r\n\u003E oxlint\r\n\r\n",
+        "durationMs": 929
+      },
+      {
+        "name": "frontend-build-passes",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E careeros@0.0.0 build\r\n\u003E tsc -b \u0026\u0026 vite build\r\n\r\n\u001B[36mvite v7.3.7 \u001B[32mbuilding client environment for production...\u001B[36m\u001B[39m\r\ntransforming...\r\n\u001B[33mnode_modules/zod/v4/core/util.js (400:0): A comment\r\n\r\n\u0022// Wrapped in a \u0060@__PURE__\u0060 IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on \u0060Number\u0060, so the bare object literal survived into every bundle.\u0022\r\n\r\nin \u0022node_modules/zod/v4/core/util.js\u0022 contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.\u001B[39m\r\n\u001B[33mnode_modules/zod/v4/core/regexes.js (74:0): A comment\r\n\r\n\u0022/** Anchors a pattern source. The interpolation lives here rather than at the call site because\r\n * esbuild will not drop a \u0060@__PURE__\u0060 call whose own argument interpolates a variable, but it\r\n * will drop \u0060anchor(dateSource)\u0060. Keeping it inline pinned \u0060date\u0060 into every bundle. */\u0022\r\n\r\nin \u0022node_modules/zod/v4/core/regexes.js\u0022 contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.\u001B[39m\r\n\u001B[32m\u2713\u001B[39m 2470 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mindex.html                          \u001B[39m\u001B[1m\u001B[2m  0.97 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   0.55 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[35massets/index-uWLhy2sN.css           \u001B[39m\u001B[1m\u001B[2m 54.82 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  11.50 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/pencil-CvPkzcD1.js           \u001B[39m\u001B[1m\u001B[2m  0.31 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   0.24 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/map-pin-DrWasnyf.js          \u001B[39m\u001B[1m\u001B[2m  0.40 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   0.28 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/MonthlyCalendar-gIGiyDpd.js  \u001B[39m\u001B[1m\u001B[2m  6.64 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   2.44 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/Dashboard-BLGKAvke.js        \u001B[39m\u001B[1m\u001B[2m  7.76 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   2.75 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/ProfilePage-6sYVstC1.js      \u001B[39m\u001B[1m\u001B[2m 14.02 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   4.46 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/DirectoryPages-C3WGejYE.js   \u001B[39m\u001B[1m\u001B[2m 15.70 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   4.52 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-CcCxm0Mt.js            \u001B[39m\u001B[1m\u001B[2m224.85 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  59.05 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-D1SKfJ6I.js            \u001B[39m\u001B[1m\u001B[2m459.28 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip: 139.70 kB\u001B[22m\r\n\u001B[32m\u2713 built in 9.48s\u001B[39m\r\n",
+        "durationMs": 20033
+      },
+      {
+        "name": "api-build-passes",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E careeros@0.0.0 build:api\r\n\u003E npm run build --workspace @careeros/api\r\n\r\n\r\n\u003E @careeros/api@1.0.0 build\r\n\u003E tsc -p tsconfig.json \u0026\u0026 node --input-type=module -e \u0022import { copyFileSync } from \u0027node:fs\u0027; copyFileSync(\u0027prod-ca-2021.crt\u0027, \u0027dist/prod-ca-2021.crt\u0027)\u0022\r\n\r\n",
+        "durationMs": 6874
+      },
+      {
+        "name": "prisma-schema-validates",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E careeros@0.0.0 prisma:validate\r\n\u003E npm run prisma:validate --workspace @careeros/api\r\n\r\n\r\n\u003E @careeros/api@1.0.0 prisma:validate\r\n\u003E prisma validate\r\n\r\n\u25C7 injected env (6) from .env\r\nLoaded Prisma config from prisma.config.ts.\r\n\r\nPrisma schema loaded from ..\\prisma\\schema.prisma.\r\nThe schema at ..\\prisma\\schema.prisma is valid \uD83D\uDE80\r\n",
+        "durationMs": 3965
+      },
+      {
+        "name": "web-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022en\u0022\u003E\n  \u003Chead\u003E\n    \u003Cscript type=\u0022module\u0022\u003Eimport { injectIntoGlobalHook } from \u0022/@react-refresh\u0022;\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () =\u003E {};\nwindow.$RefreshSig$ = () =\u003E (type) =\u003E type;\u003C/script\u003E\n\n    \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\n    \u003Cmeta charset=\u0022UTF-8\u0022 /\u003E\n    \u003Clink rel=\u0022icon\u0022 type=\u0022image/svg\u002Bxml\u0022 href=\u0022/favicon.svg\u0022 /\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022 /\u003E\n    \u003Cmeta name=\u0022theme-color\u0022 content=\u0022#f7f8fa\u0022 /\u003E\n    \u003Cmeta name=\u0022description\u0022 content=\u0022A calmer way to organize your career search, applications, and professional network.\u0022 /\u003E\n    \u003Ctitle\u003ECareerOS \u2014 Your next move, organized\u003C/title\u003E\n    \u003Cscript\u003E\n      try {\n        const theme = localStorage.getItem(\u0027careeros-theme-v1\u0027)\n        if (theme === \u0027dark\u0027 || theme === \u0027light\u0027) document.documentElement.dataset.theme = theme\n      } catch {\n        // Theme storage may be unavailable in restricted browser contexts.\n      }\n    \u003C/script\u003E\n  \u003C/head\u003E\n  \u003Cbody\u003E\n    \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\n    \u003Cscript type=\u0022module\u0022 src=\u0022/src/main.tsx?t=1793898022788\u0022\u003E\u003C/script\u003E\n  \u003C/body\u003E\n\u003C/html\u003E\n",
+        "durationMs": 24
+      }
+    ],
+    "executions": [
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "E:\\ARYAN\\Projects\\CareerOS",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "lint-passes",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "lint"
+        ],
+        "cwd": "E:\\ARYAN\\Projects\\CareerOS",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "frontend-build-passes",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "E:\\ARYAN\\Projects\\CareerOS",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "api-build-passes",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build:api"
+        ],
+        "cwd": "E:\\ARYAN\\Projects\\CareerOS",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "prisma-schema-validates",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "prisma:validate"
+        ],
+        "cwd": "E:\\ARYAN\\Projects\\CareerOS",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "web-server-serves-home",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "dev:web",
+          "--",
+          "--host",
+          "127.0.0.1",
+          "--strictPort"
+        ],
+        "cwd": "E:\\ARYAN\\Projects\\CareerOS",
+        "env": {
+          "VITE_DATA_MODE": "demo"
+        },
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}

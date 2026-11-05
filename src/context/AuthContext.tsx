@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { getDataMode, getSupabaseClient, isSupabaseConfigured } from '../lib/supabase'
+import { apiErrorMessage, readJsonBody } from '../lib/api'
 import { AuthContext, type ApplicationUser, type AuthContextValue } from './auth-context'
 
 function messageOf(error: unknown) {
@@ -67,14 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}` },
     }).then(async (response) => {
-      const body: unknown = await response.json()
+      const body = await readJsonBody(response)
       if (!response.ok) {
-        const apiMessage = typeof body === 'object' && body !== null && 'error' in body
-          && typeof body.error === 'object' && body.error !== null && 'message' in body.error
-          && typeof body.error.message === 'string'
-          ? body.error.message
-          : `Account setup failed (${response.status}).`
-        throw new Error(apiMessage)
+        throw new Error(apiErrorMessage(body, `Account setup failed (${response.status}).`))
       }
       if (typeof body !== 'object' || body === null || !('user' in body) || typeof body.user !== 'object' || body.user === null) {
         throw new Error('The server returned an invalid account response.')
@@ -144,6 +140,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updatePassword: async (password) => {
       const client = await getSupabaseClient()
       const { error } = await client.auth.updateUser({ password })
+      if (error) throw error
+    },
+    updateDisplayName: async (name) => {
+      const client = await getSupabaseClient()
+      const { error } = await client.auth.updateUser({ data: { full_name: name.trim() } })
       if (error) throw error
     },
     signOut: async () => {
