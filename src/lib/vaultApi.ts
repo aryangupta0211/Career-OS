@@ -436,4 +436,53 @@ export const vaultApi = {
     if (!response.ok) throw new Error('Failed to reconcile storage')
     return response.json()
   },
+
+  async getApplicationDocuments(applicationId: string, token?: string): Promise<any[]> {
+    if (getDataMode() === 'demo') {
+      return demoVaultStore.getApplicationDocuments(applicationId)
+    }
+
+    const response = await fetch(`/api/vault/applications/${applicationId}/documents`, {
+      headers: authHeader(token),
+    })
+    if (!response.ok) throw new Error('Failed to fetch application documents')
+    return response.json()
+  },
+
+  async linkApplicationDocument(
+    applicationId: string,
+    data: { vaultFileId: string; resumeVersionId?: string | null; documentRole?: string; notes?: string | null },
+    token?: string
+  ): Promise<any> {
+    if (getDataMode() === 'demo') {
+      return demoVaultStore.linkApplicationDocument(applicationId, data)
+    }
+
+    const response = await fetch(`/api/vault/applications/${applicationId}/documents`, {
+      method: 'POST',
+      headers: {
+        ...authHeader(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error?.message || 'Failed to attach document to application')
+    }
+    return response.json()
+  },
+
+  async unlinkApplicationDocument(applicationId: string, documentId: string, token?: string): Promise<void> {
+    if (getDataMode() === 'demo') {
+      demoVaultStore.unlinkApplicationDocument(applicationId, documentId)
+      return
+    }
+
+    const response = await fetch(`/api/vault/applications/${applicationId}/documents/${documentId}`, {
+      method: 'DELETE',
+      headers: authHeader(token),
+    })
+    if (!response.ok) throw new Error('Failed to unlink document')
+  },
 }

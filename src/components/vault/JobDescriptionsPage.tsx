@@ -18,6 +18,7 @@ import { useAuth } from '../../context/auth-context'
 import { useCareerData } from '../../context/useCareerData'
 import type { JobDescription, VaultFile } from '../../types'
 import { VaultFileDetailModal } from './VaultFileDetailModal'
+import { CompanySelectWithCreate } from '../CompanySelectWithCreate'
 
 export function JobDescriptionsPage() {
   const auth = useAuth()
@@ -47,8 +48,18 @@ export function JobDescriptionsPage() {
   const [descriptionText, setDescriptionText] = useState('')
   const [notes, setNotes] = useState('')
   const [jdFile, setJdFile] = useState<File | null>(null)
+  const [createApplication, setCreateApplication] = useState(false)
+  const [appStatus, setAppStatus] = useState('Saved')
+  const [resumeVersion, setResumeVersion] = useState('')
+  const [resumeGroups, setResumeGroups] = useState<any[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
+
+  const { addRecord } = useCareerData()
+
+  useEffect(() => {
+    vaultApi.getResumeGroups(false, token).then(setResumeGroups).catch(() => {})
+  }, [token])
 
   const loadJds = async () => {
     setIsLoading(true)
@@ -96,6 +107,40 @@ export function JobDescriptionsPage() {
         jdFile || undefined,
         token,
       )
+
+      // If user opted to create linked application immediately
+      if (createApplication) {
+        const appId = `app-${Date.now()}`
+        addRecord('application', {
+          jobTitle: title.trim(),
+          companyId: companyId || '',
+          status: appStatus,
+          appliedAt: new Date().toISOString().slice(0, 10),
+          nextAction: 'Review saved JD',
+          nextFollowUpAt: '',
+          location: location.trim(),
+          jobUrl: sourceUrl.trim(),
+          applicationUrl: careerPageUrl.trim(),
+          jobType: employmentType,
+          workArrangement: 'Remote',
+          resumeReference: resumeVersion,
+          jobDescription: descriptionText.trim(),
+          prepNotes: responsibilities.trim(),
+          notes: notes.trim(),
+        })
+
+        // Also link vault document if uploaded
+        if (created.vaultFileId) {
+          vaultApi.linkApplicationDocument(
+            appId,
+            {
+              vaultFileId: created.vaultFileId,
+              documentRole: 'JOB_DESCRIPTION',
+            },
+            token
+          ).catch(() => {})
+        }
+      }
 
       setJds((prev) => [created, ...prev])
       setIsAddingJd(false)
@@ -309,22 +354,12 @@ export function JobDescriptionsPage() {
                   </div>
 
                   <div className="vault-form-field">
-                    <label className="vault-field-label" htmlFor="jd-company-select">
-                      Company
-                    </label>
-                    <select
-                      id="jd-company-select"
-                      className="vault-select-full"
+                    <CompanySelectWithCreate
+                      label="Company"
                       value={companyId}
-                      onChange={(e) => setCompanyId(e.target.value)}
-                    >
-                      <option value="">None (Independent Opportunity)</option>
-                      {data.companies.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setCompanyId}
+                      placeholder="None (Independent Opportunity)"
+                    />
                   </div>
                 </div>
 
@@ -434,6 +469,68 @@ export function JobDescriptionsPage() {
                     value={descriptionText}
                     onChange={(e) => setDescriptionText(e.target.value)}
                   />
+                </div>
+
+                {/* Simultaneous Connected Application Creation */}
+                <div
+                  style={{
+                    padding: '14px',
+                    borderRadius: '8px',
+                    background: 'var(--surface-muted)',
+                    border: '1px solid var(--line)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    marginTop: '8px',
+                  }}
+                >
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={createApplication}
+                      onChange={(e) => setCreateApplication(e.target.checked)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <strong style={{ fontSize: '13px', color: 'var(--ink)' }}>
+                      Create connected Application immediately
+                    </strong>
+                  </label>
+
+                  {createApplication && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '4px' }}>
+                      <div>
+                        <label className="vault-field-label">Initial Status</label>
+                        <select
+                          className="vault-select-full"
+                          value={appStatus}
+                          onChange={(e) => setAppStatus(e.target.value)}
+                        >
+                          <option value="Saved">Saved</option>
+                          <option value="Applied">Applied</option>
+                          <option value="Assessment">Assessment</option>
+                          <option value="Interview">Interview</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="vault-field-label">Attach Resume Version</label>
+                        <select
+                          className="vault-select-full"
+                          value={resumeVersion}
+                          onChange={(e) => setResumeVersion(e.target.value)}
+                        >
+                          <option value="">-- Choose resume version --</option>
+                          {resumeGroups.map((g) =>
+                            g.versions.map((v: any) => (
+                              <option key={v.id} value={`${g.name} (${v.versionLabel})`}>
+                                {g.name} — {v.versionLabel} {v.isCurrent ? '(Current)' : ''}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

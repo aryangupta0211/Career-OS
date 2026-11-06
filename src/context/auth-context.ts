@@ -28,6 +28,23 @@ export const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function useAuth() {
   const value = useContext(AuthContext)
-  if (!value) throw new Error('useAuth must be used within AuthProvider.')
+  if (!value) {
+    return {
+      session: null,
+      user: null,
+      loading: false,
+      provisioning: false,
+      authError: '',
+      provisioningError: '',
+      dataMode: 'demo' as const,
+      signUp: async () => {},
+      signIn: async () => {},
+      requestPasswordReset: async () => {},
+      updatePassword: async () => {},
+      updateDisplayName: async () => {},
+      signOut: async () => {},
+      retryProvisioning: () => {},
+    }
+  }
   return value
 }

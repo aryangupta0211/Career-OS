@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import {
   Bell, BriefcaseBusiness, Building2, CalendarDays, CheckSquare, ChevronDown, ChevronLeft,
   ChevronRight, CircleHelp, FolderArchive, LayoutDashboard, LogOut, Moon, Plus, Search, Settings, Sun, Users, X,
+  FileText, UploadCloud,
 } from 'lucide-react'
 import { getCompanyName } from '../data/demo'
 import { useCareerData } from '../context/useCareerData'
@@ -10,6 +11,7 @@ import { useAuth } from '../context/auth-context'
 import { useTheme } from '../context/useTheme'
 import type { RecordType } from '../types'
 import { RecordDialog } from './RecordDialog'
+import { VaultUploadDialog } from './vault/VaultUploadDialog'
 
 const navigation = [
   { label: 'Overview', to: '/', icon: LayoutDashboard },
@@ -77,6 +79,7 @@ export function AppShell() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [addType, setAddType] = useState<RecordType | null>(null)
+  const [isQuickUploadOpen, setIsQuickUploadOpen] = useState(false)
   const [dropdown, setDropdown] = useState<Dropdown>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarPreference)
@@ -238,7 +241,34 @@ export function AppShell() {
             </div>
             <div className="quick-add-wrap" data-app-menu>
               <button className="button button-primary quick-add-button" aria-expanded={dropdown === 'quick-add'} aria-haspopup="menu" onClick={() => toggleDropdown('quick-add')}><Plus size={16} /> <span>Add new</span></button>
-              {dropdown === 'quick-add' && <div className="quick-add-menu" role="menu">{addOptions.map(({ type, label, icon: Icon }) => <button role="menuitem" key={type} onClick={() => openAdd(type)}><Icon size={16} /> <span>{label}</span><Plus size={13} className="quick-add-item-plus" /></button>)}</div>}
+              {dropdown === 'quick-add' && (
+                <div className="quick-add-menu" role="menu">
+                  {addOptions.map(({ type, label, icon: Icon }) => (
+                    <button role="menuitem" key={type} onClick={() => openAdd(type)}>
+                      <Icon size={16} /> <span>{label}</span><Plus size={13} className="quick-add-item-plus" />
+                    </button>
+                  ))}
+                  <div style={{ height: '1px', background: 'var(--line)', margin: '4px 0' }} />
+                  <button
+                    role="menuitem"
+                    onClick={() => {
+                      setDropdown(null)
+                      navigate('/vault/jobs')
+                    }}
+                  >
+                    <FileText size={16} /> <span>Save Job Description</span><Plus size={13} className="quick-add-item-plus" />
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={() => {
+                      setDropdown(null)
+                      setIsQuickUploadOpen(true)
+                    }}
+                  >
+                    <UploadCloud size={16} /> <span>Upload Document</span><Plus size={13} className="quick-add-item-plus" />
+                  </button>
+                </div>
+              )}
             </div>
             <button className="icon-button theme-toggle" aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} title={`${theme === 'light' ? 'Dark' : 'Light'} mode`} onClick={toggleTheme}>{theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}</button>
             <div className="notice-wrap" data-app-menu>
@@ -273,6 +303,7 @@ export function AppShell() {
         <footer className="app-footer"><span>CareerOS <span className="footer-dot">·</span> Your next move, organized.</span><a href="mailto:hello@careeros.example"><CircleHelp size={14} /> Help</a></footer>
       </main>
       {addType && <RecordDialog type={addType} initialDate={addInitialDate} onClose={() => { setAddType(null); setAddInitialDate(undefined) }} />}
+      {isQuickUploadOpen && <VaultUploadDialog onClose={() => setIsQuickUploadOpen(false)} onSuccess={() => setIsQuickUploadOpen(false)} />}
     </div>
   )
 }

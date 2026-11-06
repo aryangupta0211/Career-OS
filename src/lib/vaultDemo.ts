@@ -446,5 +446,57 @@ export const demoVaultStore = {
       maxFileSizeBytes: 20 * 1024 * 1024,
     }
   },
+
+  getApplicationDocuments(applicationId: string) {
+    const list: any[] = []
+    for (const f of demoFiles) {
+      if (f.status !== 'ACTIVE') continue
+      for (const ad of f.applicationDocuments || []) {
+        if (ad.applicationId === applicationId) {
+          list.push({
+            id: ad.id,
+            applicationId,
+            vaultFileId: f.id,
+            vaultFile: f,
+            documentRole: ad.documentRole || 'SUPPORTING_DOCUMENT',
+            createdAt: f.createdAt,
+          })
+        }
+      }
+    }
+    return list
+  },
+
+  linkApplicationDocument(applicationId: string, data: { vaultFileId: string; resumeVersionId?: string | null; documentRole?: string; notes?: string | null }) {
+    const file = demoFiles.find((f) => f.id === data.vaultFileId)
+    const docId = `appdoc-${Date.now()}`
+    if (file) {
+      if (!file.applicationDocuments) file.applicationDocuments = []
+      file.applicationDocuments.push({
+        id: docId,
+        applicationId,
+        documentRole: data.documentRole || 'SUPPORTING_DOCUMENT',
+      })
+    }
+    return {
+      id: docId,
+      applicationId,
+      vaultFileId: data.vaultFileId,
+      vaultFile: file,
+      resumeVersionId: data.resumeVersionId,
+      documentRole: data.documentRole || 'SUPPORTING_DOCUMENT',
+      notes: data.notes,
+      createdAt: new Date().toISOString(),
+    }
+  },
+
+  unlinkApplicationDocument(applicationId: string, documentId: string) {
+    for (const f of demoFiles) {
+      if (f.applicationDocuments) {
+        f.applicationDocuments = f.applicationDocuments.filter((ad) => ad.id !== documentId && ad.applicationId !== applicationId)
+      }
+    }
+    return true
+  },
 }
 
