@@ -21,22 +21,6 @@ enum ApplicationStatus {
   REJECTED
 }
 
-enum OpportunityStatus {
-  IDEA
-  ACTIVE
-  CLOSED
-  REJECTED
-  ACCEPTED
-}
-
-  SAVED
-  APPLIED
-  ASSESSMENT
-  INTERVIEW
-  OFFER
-  REJECTED
-}
-
 enum JobType {
   FULL_TIME
   PART_TIME
@@ -110,7 +94,7 @@ model User {
   id             String           @id @default(cuid())
   supabaseAuthId String?          @unique @db.Uuid
   name           String
-  email        String           @unique
+  email          String           @unique
   firstName      String?
   lastName       String?
   phone          String?
@@ -122,12 +106,12 @@ model User {
   linkedinUrl    String?
   githubUrl      String?
   portfolioUrl   String?
-  companies    Company[]
-  contacts     Contact[]
-  applications JobApplication[]
-  tasks        Task[]
-  events       Event[]
-  activities   Activity[]
+  companies      Company[]
+  contacts       Contact[]
+  applications   JobApplication[]
+  tasks          Task[]
+  events         Event[]
+  activities     Activity[]
   vaultFiles           VaultFile[]
   resumeGroups         ResumeGroup[]
   resumeVersions       ResumeVersion[]
@@ -136,63 +120,33 @@ model User {
   applicationDocuments ApplicationDocument[]
   companyDocuments     CompanyDocument[]
   storageUsage         StorageUsage?
-  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
 }
 
 model Company {
-  id           String           @id @default(cuid())
-  userId       String
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  normalizedName String @default("")
-  website      String?
-  websiteDomain String? @default("")
-  careersUrl   String?
-  linkedinUrl  String?
-  industry     String?
-  location     String?
-  size         String?
-  notes        String?
-  tags         String[]         @default([])
-  contacts     Contact[]
-  applications JobApplication[]
-  tasks        Task[]
-  events       Event[]
-  activities   Activity[]
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  website          String?
+  careersUrl       String?
+  linkedinUrl      String?
+  industry         String?
+  location         String?
+  size             String?
+  notes            String?
+  tags             String[]          @default([])
+  contacts         Contact[]
+  applications     JobApplication[]
+  tasks            Task[]
+  events           Event[]
+  activities       Activity[]
   jobDescriptions  JobDescription[]
   companyResources CompanyResource[]
   companyDocuments CompanyDocument[]
-  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
-
-  @@index([userId, name])
-  @@index([userId, industry])
-  @@unique([id, userId])
-  @@unique([userId, normalizedName, websiteDomain])
-}
-  id           String           @id @default(cuid())
-  userId       String
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  website      String?
-  careersUrl   String?
-  linkedinUrl  String?
-  industry     String?
-  location     String?
-  size         String?
-  notes        String?
-  tags         String[]         @default([])
-  contacts     Contact[]
-  applications JobApplication[]
-  tasks        Task[]
-  events       Event[]
-  activities   Activity[]
-  jobDescriptions  JobDescription[]
-  companyResources CompanyResource[]
-  companyDocuments CompanyDocument[]
-  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime          @updatedAt @db.Timestamptz(3)
 
   @@index([userId, name])
   @@index([userId, industry])
@@ -233,32 +187,32 @@ model Contact {
 }
 
 model JobApplication {
-  id              String            @id @default(cuid())
-  userId          String
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyId       String?
-  company         Company?          @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
-  jobTitle        String
-  jobDescription  String?
-  prepNotes       String?
-  jobUrl          String?
-  applicationUrl String?
-  status          ApplicationStatus @default(SAVED)
-  jobType         JobType?
-  location        String?
-  workArrangement WorkArrangement?
-  appliedAt       DateTime?         @db.Timestamptz(3)
-  resumeReference String?
-  nextAction      String?
-  nextFollowUpAt  DateTime?         @db.Timestamptz(3)
-  notes           String?
-  tasks           Task[]
-  events          Event[]
-  activities      Activity[]
+  id                   String                @id @default(cuid())
+  userId               String
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId            String?
+  company              Company?              @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
+  jobTitle             String
+  jobDescription       String?
+  prepNotes            String?
+  jobUrl               String?
+  applicationUrl       String?
+  status               ApplicationStatus     @default(SAVED)
+  jobType              JobType?
+  location             String?
+  workArrangement      WorkArrangement?
+  appliedAt            DateTime?             @db.Timestamptz(3)
+  resumeReference      String?
+  nextAction           String?
+  nextFollowUpAt       DateTime?             @db.Timestamptz(3)
+  notes                String?
+  tasks                Task[]
+  events               Event[]
+  activities           Activity[]
   jobDescriptions      JobDescription[]
   applicationDocuments ApplicationDocument[]
-  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
-  updatedAt       DateTime          @updatedAt @db.Timestamptz(3)
+  createdAt            DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime              @updatedAt @db.Timestamptz(3)
 
   @@index([userId, status])
   @@index([userId, jobTitle])
@@ -408,23 +362,7 @@ model ResumeVersion {
   @@index([vaultFileId])
 }
 
-model Opportunity {
-  id           String           @id @default(cuid())
-  userId       String
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyId    String?
-  company      Company?         @relation(fields: [companyId, userId], references: [id, userId], onDelete: Restrict)
-  title        String
-  description  String?
-  status       OpportunityStatus @default(IDEA)
-  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
-
-  @@index([userId, status])
-  @@index([userId, companyId])
-  @@unique([id, userId])
-}
-
+model JobDescription {
   id                  String            @id @default(cuid())
   userId              String
   user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
