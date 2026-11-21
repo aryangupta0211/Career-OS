@@ -12,6 +12,7 @@ import {
   Download,
   X,
   AlertCircle,
+  Sparkles,
 } from 'lucide-react'
 import { vaultApi } from '../../lib/vaultApi'
 import { useAuth } from '../../context/auth-context'
@@ -19,6 +20,7 @@ import { useCareerData } from '../../context/useCareerData'
 import type { JobDescription, VaultFile } from '../../types'
 import { VaultFileDetailModal } from './VaultFileDetailModal'
 import { CompanySelectWithCreate } from '../CompanySelectWithCreate'
+import { JdExtractionModal } from './JdExtractionModal'
 
 export function JobDescriptionsPage() {
   const auth = useAuth()
@@ -30,6 +32,7 @@ export function JobDescriptionsPage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState('ALL')
   const [isLoading, setIsLoading] = useState(true)
   const [isAddingJd, setIsAddingJd] = useState(false)
+  const [isExtractingModalOpen, setIsExtractingModalOpen] = useState(false)
   const [selectedJdDetail, setSelectedJdDetail] = useState<JobDescription | null>(null)
   const [activePreviewFile, setActivePreviewFile] = useState<VaultFile | null>(null)
 
@@ -311,8 +314,18 @@ export function JobDescriptionsPage() {
       {isAddingJd && (
         <div className="vault-modal-scrim" onClick={(e) => e.target === e.currentTarget && setIsAddingJd(false)}>
           <div className="vault-modal large" role="dialog" aria-modal="true" aria-labelledby="add-jd-title">
-            <div className="vault-modal-header">
-              <h2 id="add-jd-title">Save Job Description</h2>
+            <div className="vault-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 id="add-jd-title" style={{ margin: 0 }}>Save Job Description</h2>
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  style={{ fontSize: '11px', height: '28px', padding: '0 8px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  onClick={() => setIsExtractingModalOpen(true)}
+                >
+                  <Sparkles size={13} style={{ color: 'var(--accent)' }} /> Extract Details
+                </button>
+              </div>
               <button className="row-action-button" onClick={() => setIsAddingJd(false)}>
                 <X size={18} />
               </button>
@@ -653,6 +666,24 @@ export function JobDescriptionsPage() {
             setActivePreviewFile(null)
             loadJds()
           }}
+        />
+      )}
+
+      {/* Smart JD Extraction Modal */}
+      {isExtractingModalOpen && (
+        <JdExtractionModal
+          initialText={descriptionText || selectedJdDetail?.descriptionText || ''}
+          vaultFileId={selectedJdDetail?.vaultFileId || undefined}
+          onApply={(ext) => {
+            if (ext.title) setTitle(ext.title)
+            if (ext.location) setLocation(ext.location)
+            if (ext.requiredSkills.length > 0) setRequiredSkills(ext.requiredSkills.join(', '))
+            if (ext.preferredSkills.length > 0) setPreferredSkills(ext.preferredSkills.join(', '))
+            if (ext.responsibilities) setResponsibilities(ext.responsibilities)
+            if (ext.rawText) setDescriptionText(ext.rawText)
+            setIsExtractingModalOpen(false)
+          }}
+          onClose={() => setIsExtractingModalOpen(false)}
         />
       )}
     </div>

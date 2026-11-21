@@ -1,0 +1,755 @@
+Career OS Optimization
+
+
+I recommend treating this as a major product module, not a simple file-upload page.
+
+I've structured the implementation into phases so Antigravity can build the complete feature set without creating disconnected components or compromising existing functionality.
+
+# CareerOS Vault — Complete implementation plan
+
+
+
+Product specification
+
+9 implementation phases
+
+
+
+## Overall objective
+
+Build a secure, cloud-based career document management system that allows users to:
+
+- Store resumes and maintain their version history.
+- Save job descriptions, even after job postings expire.
+- Upload documents, screenshots, images and other career-related files.
+- Link every document to relevant companies and applications.
+- Access documents from any device.
+- Find everything needed for an interview quickly.
+- Monitor and manage storage usage.
+
+Core principle: One document, one canonical record, multiple connected locations throughout CareerOS.
+
+# Phase 0 — Existing project inspection and architecture planning
+
+Critical — before implementation
+
+Before writing code, Antigravity must understand the existing CareerOS architecture.
+
+### Tasks
+
+1. Inspect the current Prisma schema and migration history.
+2. Inspect existing `User`, `Company`, `JobApplication`, `Contact`, `Task` and `Event` models.
+3. Inspect existing API routes and authentication middleware.
+4. Inspect the current frontend routing and shared components.
+5. Inspect the current profile and application pages.
+6. Inspect existing Supabase project and Storage configuration.
+7. Identify existing document fields, such as `resumeReference` and `jobDescription`.
+8. Identify which existing functionality can be reused.
+
+### Expected outcome
+
+- Architecture assessment.
+- Existing-model reuse plan.
+- Proposed Vault database relationships.
+- Proposed storage architecture.
+- Migration plan.
+
+No existing functionality should be replaced unnecessarily.
+
+# Phase 1 — Secure storage infrastructure and database foundation
+
+Critical
+
+Build the foundation before creating the Vault UI.
+
+### 1. Supabase Storage integration
+
+Use private Supabase Storage buckets to store actual files.
+
+The database should store file metadata and relationships, not file contents.
+
+Implement:
+
+- Private file storage.
+- User-specific file paths.
+- Secure upload and download.
+- Signed URLs for temporary access.
+- File ownership validation.
+- File type validation.
+- File size validation.
+- Upload failure handling.
+- Storage cleanup and reconciliation.
+
+### 2. Database architecture
+
+Proposed logical entities:
+
+| Entity              | Responsibility                         |
+| ------------------- | -------------------------------------- |
+| VaultFile           | Canonical file metadata                |
+| ResumeGroup         | Groups resumes by role or purpose      |
+| ResumeVersion       | Maintains immutable resume versions    |
+| JobDescription      | Stores job description information     |
+| CompanyResource     | Stores company-related links/resources |
+| ApplicationDocument | Connects files to applications         |
+| CompanyDocument     | Connects files to companies            |
+| DocumentTag         | Categorizes documents                  |
+| StorageUsage        | Tracks storage consumption             |
+
+These are logical responsibilities. Antigravity must inspect the current schema before deciding which require separate Prisma models.
+
+### 3. Storage quota architecture
+
+Implement configurable settings for:
+
+- Total storage budget.
+- Per-user storage quota.
+- Maximum file size.
+- Allowed file types.
+- Storage warning threshold.
+
+Important: Do not promise 1 GB per user automatically.
+
+First calculate the actual available Supabase project storage and expected usage. Keep quotas configurable so we can change them without redesigning the system.
+
+### Expected outcome
+
+A secure, tested backend foundation ready to accept file uploads.
+
+# Phase 2 — Vault dashboard and file management UI
+
+Core functionality
+
+Build the main Vault interface.
+
+[Modern Dark File Manager Dashboard UI by Abdullah Mamun on Dribbble](https://images.openai.com/static-rsc-4/2St4cEecSHMSrcZi5rJlIBThft0nttIQq_UKG5hxBNOaMJl9kwme5cu1p869GrkM47LSGgvfP7BaOS8por9tTvX1N1wr-wDvKD6D48tRbZTM-GDjRU4CaeAZ--9f1KlRnYuPdOc60Vl0UUje8dBwgSOib_caSAw59ES_CfPmHVk?purpose=inline)
+
+[dribbble.com](https://dribbble.com/shots/26863894-Modern-Dark-File-Manager-Dashboard-UI?utm_source=chatgpt.com)
+
+### 1. Vault overview
+
+Display:
+
+- Total stored files.
+- Storage used.
+- Available storage.
+- Recent uploads.
+- Recently accessed documents.
+- Resumes.
+- Saved job descriptions.
+- Documents linked to active applications.
+
+### 2. Main navigation
+
+The Vault should contain:
+
+| Section          | Purpose                             |
+| ---------------- | ----------------------------------- |
+| Overview         | Storage summary and recent activity |
+| Resumes          | Resume library and versions         |
+| Job Descriptions | Saved job descriptions              |
+| All Documents    | Complete file collection            |
+| Trash            | Deleted files and restoration       |
+
+### 3. Upload experience
+
+Create a reusable upload interface.
+
+Support:
+
+- File selection.
+- Drag and drop.
+- Multiple file uploads.
+- Upload progress.
+- File validation.
+- Upload cancellation where safe.
+- Error handling.
+- Success notifications.
+
+### 4. File management
+
+Each file should support:
+
+- Preview.
+- Download.
+- Rename.
+- Edit description.
+- Add tags.
+- View metadata.
+- Link to companies.
+- Link to applications.
+- Delete.
+
+### 5. Search and filtering
+
+Add:
+
+- Search by filename.
+- Filter by file type.
+- Filter by company.
+- Filter by application.
+- Filter by upload date.
+- Sort by name, date and file size.
+
+List view should be the default, with an optional grid view.
+
+### Expected outcome
+
+A fully functional Vault where users can upload, browse, organize, preview and download documents.
+
+# Phase 3 — Resume Vault and version management
+
+Core functionality
+
+This is one of the most important modules.
+
+[Master + Tailored Resumes | ApplyX | ApplyX](https://images.openai.com/static-rsc-4/i4qu7reigKQv9p-ttOLQn4T6V1CDUuNrNvUui1lO6NvAC0dWNUxuAtbx4hmof0zAiAxJM2xxfIos9Mtym8hO6sGf3BRq8YehTV-P2O8EyLtfenwUNCGduu1RznwjM9hQDGRhOOUm9ShbTMT7Dg3xJZkgjHDAac-AqQGtByzCcRc?purpose=inline)
+
+[applyx.app](https://applyx.app/features/master-and-tailored-resumes?utm_source=chatgpt.com)
+
+### 1. Resume organization
+
+Allow users to organize resumes by:
+
+- Frontend Developer.
+- Backend Developer.
+- Full Stack Developer.
+- Software Development Engineer.
+- AI/ML Engineer.
+- Custom roles.
+
+Users can create their own categories.
+
+### 2. Resume upload details
+
+Each resume should contain:
+
+- Resume name.
+- Original filename.
+- Target role.
+- Version number.
+- Upload timestamp.
+- Custom description.
+- Skills and keywords.
+- File size.
+- File format.
+- Current-version indicator.
+
+### 3. Resume version history
+
+Example:
+
+Backend Developer Resume
+
+- v1.0 — September 2026
+- v1.1 — October 2026
+- v2.0 — November 2026
+
+Requirements:
+
+- Never overwrite an existing version.
+- Allow users to upload new versions.
+- Preserve previous versions.
+- Mark one version as current.
+- Allow older versions to be downloaded.
+- Maintain immutable version references.
+
+### 4. Resume detail page
+
+Show:
+
+- Resume preview.
+- Version history.
+- Description.
+- Associated applications.
+- Associated companies.
+- Upload date.
+- Download action.
+
+### Expected outcome
+
+A proper personal resume library where users can manage multiple role-specific resumes and retain historical versions.
+
+# Phase 4 — Job Description Library and Company Resources
+
+Core functionality
+
+[Knowledge Management – GovSignals](https://images.openai.com/static-rsc-4/HpbKQZrWZJ5U42V0HuSc8nqi1JWUNXV4CP1LvN_Edc__CunDbkvZUVNFniyG422UmDUQEb7K9XAIQmCmx8wDzenBZTs6vwUBtcFPbhsVTUQDY1kEs9L8qwrlZ0E_zSnrCHZAHqHv7UNPM9uVXiEnUQ4TXtqRHoXEeWPZvAj4U9E?purpose=inline)
+
+[govsignals.ai](https://www.govsignals.ai/platform/knowledge-management?utm_source=chatgpt.com)
+
+### 1. Job Description Library
+
+Allow users to save JDs through:
+
+- PDF uploads.
+- DOC/DOCX uploads.
+- TXT files.
+- Screenshots.
+- Images.
+- Manually pasted text.
+
+### 2. Job description metadata
+
+Each JD should support:
+
+- Company.
+- Job title.
+- Location.
+- Experience requirements.
+- Original posting URL.
+- Career page URL.
+- Application deadline.
+- Required skills.
+- Preferred skills.
+- Responsibilities.
+- Custom notes.
+- Upload date.
+
+### 3. Saved opportunities
+
+A JD must be saveable without an application.
+
+For example:
+
+A user finds an SDE opening at Deloitte but isn't eligible yet.
+
+They save the JD under Deloitte.
+
+Later, when they apply to a similar role, they can connect that saved JD to the new application.
+
+### 4. Company Resources
+
+Enhance the existing Company page with a dedicated Resources section.
+
+Store:
+
+- Official website.
+- Career page.
+- Company LinkedIn.
+- Job posting URLs.
+- Saved JDs.
+- Company documents.
+- Research notes.
+- Other important links.
+
+Links should be structured records with titles, URLs, descriptions and optional categories.
+
+### Expected outcome
+
+Companies become centralized information hubs, containing their links, resources, job descriptions and related documents.
+
+# Phase 5 — Complete document synchronization and application integration
+
+Highest product priority
+
+This phase connects everything.
+
+[Job Application Dashboard | Track Interviews & Offers | Interactive Job Search Tracker | Hired OS | Digital Download - Etsy](https://images.openai.com/static-rsc-4/UQmAwdxN5SScB2eskuI0Ne9NYifRunVj3_DlBW_r-14IlOEiyF-ycXqy4JZAsZOn-IzHBlgdtTJEONH0MLX4y9C41uGABK-FY5dUEbQHMbf_eD-iJMa9CkgswgXcdEAHkvlctZfx9kojWY6lOn2jCi8Dv3pI3I9GFMrOfow7p6I?purpose=inline)
+
+[etsy.com](https://www.etsy.com/listing/4500444202/job-application-dashboard-track?utm_source=chatgpt.com)
+
+### 1. Application Documents tab
+
+Every application should have a Documents section.
+
+Display:
+
+- Exact submitted resume version.
+- Submitted cover letter.
+- Associated JD.
+- Portfolio.
+- Supporting documents.
+- Interview preparation resources.
+
+### 2. Company Documents section
+
+Every company page should show:
+
+- Company documents.
+- Saved JDs.
+- Related applications.
+- Important links.
+- Research material.
+
+### 3. Bidirectional relationships
+
+Example:
+
+A user uploads `Backend_Resume_v2.pdf` in Vault and links it to a Microsoft application.
+
+That same document should immediately be accessible from:
+
+- Vault.
+- Microsoft company page.
+- Microsoft application page.
+
+All three should point to the same canonical file record.
+
+### 4. Historical application protection
+
+This is mandatory.
+
+If a user uploads a new resume version later:
+
+- Old application references must remain unchanged.
+- Submitted resume versions must remain accessible.
+- Changing the current resume must not alter previous application history.
+
+### 5. Link management
+
+Allow users to connect:
+
+- Company websites.
+- Career pages.
+- Job postings.
+- LinkedIn pages.
+- Other useful URLs.
+
+Avoid storing the same information independently across different pages.
+
+### Expected outcome
+
+A properly connected CareerOS workspace where documents and resources are accessible from their relevant locations.
+
+# Phase 6 — Productivity and intelligent features
+
+Advanced features
+
+Now we add the five features we discussed.
+
+### 1. Resume-to-application matching
+
+When creating an application:
+
+- Identify the job role.
+- Read resume role tags and skills.
+- Suggest relevant resume versions.
+- Show the reason for each suggestion.
+- Let the user choose manually.
+
+AI-based semantic matching can be introduced later.
+
+### 2. JD skill extraction
+
+Extract:
+
+- Technical skills.
+- Programming languages.
+- Frameworks.
+- Tools.
+- Experience requirements.
+- Education requirements.
+- Responsibilities.
+
+Allow users to review and correct extracted information.
+
+### 3. Preparation checklist generation
+
+Use extracted JD requirements to suggest preparation tasks.
+
+Example:
+
+Deloitte SDE requirements:
+
+- Java.
+- DSA.
+- SQL.
+- GenAI.
+
+Suggested tasks:
+
+- Revise Java Collections.
+- Practice DSA questions.
+- Revise SQL joins.
+- Study GenAI fundamentals.
+
+Connect generated tasks to the existing Tasks module.
+
+### 4. Duplicate detection
+
+Use SHA-256 hashing.
+
+When the same file is uploaded again:
+
+- Detect identical content.
+- Notify the user.
+- Offer to reuse the existing file.
+- Allow the user to cancel.
+
+Never automatically delete files.
+
+### 5. Document search
+
+Build two levels:
+
+Metadata search: Filename, description, company, role and tags.
+
+Content search: Extracted text from supported PDF, DOCX and TXT files.
+
+Content search should come after basic metadata search and must respect user-level authorization.
+
+### Expected outcome
+
+The Vault becomes a useful career research and preparation workspace, not merely cloud storage.
+
+# Phase 7 — Interview-ready document pack
+
+High-value feature
+
+This feature directly solves the interview-day problem you described.
+
+[Fillo - AI File Management SaaS Dashboard by Rizal Eka Rismawan on Dribbble](https://images.openai.com/static-rsc-4/HzMefDFue9ETbWyWaLXE6rXhwG6xkpMhH_smz8YW4zSlIgftHqbB0QpFY3_uu0VtTMECDhVsSdO36ygMxcGfYBPPMhTxLFZbAYTEGg6ksB-koALv0UjfyQ-gg_50w2MYyyk2PCYL1Chs5zUIBE2tA-fOec1saZk7m0jpkU1LgGY?purpose=inline)
+
+[dribbble.com](https://dribbble.com/shots/26384008-Fillo-AI-File-Management-SaaS-Dashboard?utm_source=chatgpt.com)
+
+Add a button to every application:
+
+Prepare Interview Pack
+
+The pack should include:
+
+- Exact submitted resume.
+- Original job description.
+- Cover letter.
+- Company information.
+- Important company links.
+- Interview notes.
+- Preparation checklist.
+- Relevant supporting documents.
+
+### Additional functionality
+
+- Select which files to include.
+- Preview the selected pack.
+- Generate a ZIP archive.
+- Include a README/index file.
+- Download the archive to any device.
+
+Do not include unrelated or outdated documents automatically.
+
+### Expected outcome
+
+A user can prepare and download everything needed for an interview from a single application page.
+
+# Phase 8 — Storage management and file lifecycle
+
+Essential management
+
+Build a proper storage management interface.
+
+### Storage dashboard
+
+Display:
+
+- Total project storage budget.
+- User's allocated quota.
+- Storage consumed.
+- Remaining storage.
+- File count.
+- Storage by category.
+- Largest files.
+
+### File lifecycle
+
+Implement:
+
+- Individual deletion.
+- Bulk deletion.
+- Trash.
+- Restore.
+- Permanent deletion.
+- Storage recalculation.
+- Upload quota enforcement.
+
+### Important deletion rules
+
+- Removing a company/application link must not delete the file.
+- Deleting a file must warn about linked records.
+- Historical submitted resume references must not silently break.
+- Trash retention must be configurable.
+- Permanent deletion must clean up both database records and storage objects safely.
+
+### Expected outcome
+
+Users have complete visibility and control over their storage.
+
+# Phase 9 — Security, testing and final integration
+
+Release gate
+
+This phase is mandatory before declaring the Vault complete.
+
+### Security
+
+- Private Supabase Storage.
+- Authenticated uploads.
+- Owner-scoped downloads.
+- Owner-scoped document search.
+- File ownership verification.
+- File type and size validation.
+- Safe filename handling.
+- Short-lived signed URLs.
+- No service-role key exposure.
+- No public access to private documents.
+
+### Data integrity
+
+- No orphaned storage files.
+- No broken application-document links.
+- No cross-user document access.
+- No duplicate version numbers within a resume group.
+- Correct storage accounting.
+- Safe deletion and restoration.
+
+### Testing
+
+Test:
+
+1. Upload resume.
+2. Upload another resume version.
+3. Download older version.
+4. Save a JD without an application.
+5. Link JD to company.
+6. Link JD and resume to an application.
+7. Open documents from all relevant pages.
+8. Generate interview pack.
+9. Detect duplicate uploads.
+10. Search documents.
+11. Delete and restore files.
+12. Verify storage usage.
+13. Test access from another device.
+14. Verify another user cannot access the files.
+
+Also run:
+
+- Prisma validation.
+- Migration status.
+- Frontend lint and build.
+- Backend build.
+- Automated tests.
+
+### Expected outcome
+
+A complete, secure and integrated Vault that works with the existing CareerOS application.
+
+# 10. Final phase overview
+
+## CareerOS Vault roadmap
+
+#### 00
+
+Architecture inspection
+
+Understand the existing application and schema
+
+Critical
+
+#### 01
+
+Storage and database foundation
+
+Private storage, metadata, ownership and quotas
+
+Critical
+
+#### 02
+
+Vault dashboard and file manager
+
+Upload, preview, download, search and organize
+
+Core
+
+#### 03
+
+Resume Vault
+
+Role-based resumes and immutable versions
+
+Core
+
+#### 04
+
+Job Description Library
+
+Save JDs and company resources
+
+Core
+
+#### 05
+
+Connected application ecosystem
+
+Synchronize documents across all relevant pages
+
+Critical
+
+#### 06
+
+Intelligent productivity
+
+Matching, extraction, preparation and duplicates
+
+Advanced
+
+#### 07
+
+Interview-ready packs
+
+Generate downloadable application packs
+
+Advanced
+
+#### 08
+
+Storage management
+
+Quota, trash, restoration and cleanup
+
+Core
+
+#### 09
+
+Security and final testing
+
+Verify the complete end-to-end experience
+
+Release
+
+## 11. Rules for the entire implementation
+
+These are non-negotiable across all phases:
+
+1. Preserve existing authentication.
+2. Preserve existing applications, companies, contacts, tasks and calendar.
+3. Reuse existing database models wherever practical.
+4. Do not create duplicate document records for different pages.
+5. Never overwrite historical resume versions.
+6. Never make private files publicly accessible.
+7. Never silently switch to demo data.
+8. Never reset the database.
+9. Review every new migration before applying it.
+10. Do not introduce expensive AI dependencies for basic Vault operations.
+11. Make every feature usable on desktop, tablet and mobile.
+12. Keep the interface consistent with the Attio-inspired CareerOS design.
+
+## 12. Our execution strategy
+
+I recommend assigning Antigravity the entire Vault project, but with phase-based implementation and verification checkpoints.
+
+The agent should not pause after every small UI component. It should complete related work together, test it, and continue.
+
+However, it must stop for your approval at these points:
+
+- Database migration review.
+- Storage bucket and security configuration.
+- Any production database changes.
+- Any change that could delete or invalidate existing records.
+
+Before writing the master prompt, there are two things I want us to preserve as design decisions:
+
+- The Vault should be a first-class sidebar destination, not buried inside Settings.
+- Every company and application page should have a clearly visible Documents/Resources section, even though the actual files live in one centralized Vault.
+
+My recommendation is to use this plan as the implementation baseline. Next, we can turn it into a detailed Antigravity master prompt with exact database models, API contracts, UI layouts, validation rules, security requirements and testing instructions.

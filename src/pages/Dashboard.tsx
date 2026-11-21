@@ -8,6 +8,7 @@ import { useAuth } from '../context/auth-context'
 import { MonthlyCalendar } from '../components/MonthlyCalendar'
 import { RecordDialog } from '../components/RecordDialog'
 import { getUpcomingFollowUps } from '../lib/followUps'
+import { DashboardInsightsSection } from '../components/DashboardInsightsSection'
 import type { AppShellContext, RecordType } from '../types'
 
 const dateLabel = (value: string) => value ? format(parseISO(value), 'MMM d') : '—'
@@ -53,6 +54,8 @@ export function Dashboard() {
       <MetricCard label="Upcoming interviews" value={upcomingInterviews} icon={<CalendarClock size={17} />} tone="green" onClick={() => navigate('/calendar')} />
       <MetricCard label="Follow-ups due" value={followUpsDue} icon={<Clock3 size={17} />} tone="amber" onClick={() => navigate('/tasks')} />
     </section>
+
+    <DashboardInsightsSection />
 
     <section className="dashboard-focus-grid">
       <article className="panel dashboard-calendar-panel">

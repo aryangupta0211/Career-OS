@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { RequireAuth } from './components/RequireAuth'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { DemoCareerDataProvider } from './context/CareerData'
 import { AuthProvider } from './context/AuthContext'
 import { ApiCareerDataProvider } from './context/ApiCareerData'
@@ -38,28 +39,30 @@ export default function App() {
       <AuthProvider>
         <CareerDataProvider>
           <BrowserRouter>
-            <Suspense fallback={<div className="route-loading">Opening your workspace…</div>}>
-              <Routes>
-                <Route path="/auth/login" element={<AuthPage page="login" />} />
-                <Route path="/auth/signup" element={<AuthPage page="signup" />} />
-                <Route path="/auth/forgot-password" element={<AuthPage page="forgot-password" />} />
-                <Route path="/auth/recovery" element={<AuthPage page="recovery" />} />
-                <Route path="/auth/confirm" element={<AuthPage page="confirm" />} />
-                <Route element={<RequireAuth><AppShell /></RequireAuth>}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="applications" element={<DirectoryPage />} />
-                  <Route path="companies" element={<DirectoryPage />} />
-                  <Route path="contacts" element={<DirectoryPage />} />
-                  <Route path="tasks" element={<TasksPage />} />
-                  <Route path="calendar" element={<CalendarPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="vault" element={<VaultPage />} />
-                  <Route path="vault/:tab" element={<VaultPage />} />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Route>
-              </Routes>
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<div className="route-loading">Opening your workspace…</div>}>
+                <Routes>
+                  <Route path="/auth/login" element={<AuthPage page="login" />} />
+                  <Route path="/auth/signup" element={<AuthPage page="signup" />} />
+                  <Route path="/auth/forgot-password" element={<AuthPage page="forgot-password" />} />
+                  <Route path="/auth/recovery" element={<AuthPage page="recovery" />} />
+                  <Route path="/auth/confirm" element={<AuthPage page="confirm" />} />
+                  <Route element={<RequireAuth><AppShell /></RequireAuth>}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="applications" element={<DirectoryPage />} />
+                    <Route path="companies" element={<DirectoryPage />} />
+                    <Route path="contacts" element={<DirectoryPage />} />
+                    <Route path="tasks" element={<TasksPage />} />
+                    <Route path="calendar" element={<CalendarPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
+                    <Route path="vault" element={<VaultPage />} />
+                    <Route path="vault/:tab" element={<VaultPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Route>
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
           </BrowserRouter>
         </CareerDataProvider>
       </AuthProvider>

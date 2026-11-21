@@ -1,9 +1,11 @@
 import { useState, useRef, type FormEvent, type DragEvent } from 'react'
-import { UploadCloud, X, AlertCircle } from 'lucide-react'
+import { UploadCloud, X, AlertCircle, Check } from 'lucide-react'
 import { vaultApi } from '../../lib/vaultApi'
+import { intelligenceApi } from '../../lib/intelligenceApi'
 import { useAuth } from '../../context/auth-context'
 import { useCareerData } from '../../context/useCareerData'
 import type { VaultFile, VaultFileCategory } from '../../types'
+import type { DuplicateFileCheckResult } from '../../lib/intelligence/types'
 
 interface VaultUploadDialogProps {
   initialCategory?: VaultFileCategory
@@ -32,12 +34,27 @@ export function VaultUploadDialog({
   const [isDragging, setIsDragging] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateFileCheckResult['existingFile'] | null>(null)
+  const [forceNewUpload, setForceNewUpload] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const token = auth.session?.access_token
 
   const handleFile = (file: File) => {
     setSelectedFile(file)
+    setDuplicateWarning(null)
+    setForceNewUpload(false)
+
+    // Pre-check for duplicate content hash
+    intelligenceApi
+      .checkDuplicateFile(file, token)
+      .then((res) => {
+        if (res.isDuplicate && res.existingFile) {
+          setDuplicateWarning(res.existingFile)
+        }
+      })
+      .catch(() => {})
+
     if (!displayName) {
       // Pre-fill displayName with clean filename without extension
       const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ')
@@ -58,6 +75,20 @@ export function VaultUploadDialog({
       } else if (lower.includes('cert')) {
         setCategory('CERTIFICATE')
       }
+    }
+  }
+
+  const handleReuseExisting = async () => {
+    if (!duplicateWarning) return
+    setIsSubmitting(true)
+    try {
+      const existing = await vaultApi.getFile(duplicateWarning.id, token)
+      onSuccess(existing)
+      onClose()
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to reuse existing file.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -148,6 +179,48 @@ export function VaultUploadDialog({
               >
                 <AlertCircle size={15} style={{ flexShrink: 0 }} />
                 <span>{errorMessage}</span>
+              </div>
+            )}
+
+            {duplicateWarning && !forceNewUpload && (
+              <div
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  background: '#fef3c7',
+                  border: '1px solid #fde68a',
+                  color: '#92400e',
+                  fontSize: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                  <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} />
+                  <div>
+                    <strong>Duplicate Content Detected:</strong> This file is already stored in your Vault as "<strong>{duplicateWarning.displayName}</strong>" (uploaded {new Date(duplicateWarning.createdAt).toLocaleDateString()}).
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    style={{ fontSize: '11px', height: '28px', padding: '0 10px' }}
+                    onClick={() => setForceNewUpload(true)}
+                  >
+                    Upload as New Copy
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-primary"
+                    style={{ fontSize: '11px', height: '28px', padding: '0 10px' }}
+                    onClick={handleReuseExisting}
+                    disabled={isSubmitting}
+                  >
+                    <Check size={13} /> Reuse Existing File
+                  </button>
+                </div>
               </div>
             )}
 

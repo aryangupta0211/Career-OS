@@ -15,6 +15,7 @@ import { ResumeVaultPage } from '../components/vault/ResumeVaultPage'
 import { JobDescriptionsPage } from '../components/vault/JobDescriptionsPage'
 import { VaultTrashPage } from '../components/vault/VaultTrashPage'
 import { VaultUploadDialog } from '../components/vault/VaultUploadDialog'
+import { VaultSearchSection } from '../components/vault/VaultSearchSection'
 import type { VaultFile } from '../types'
 
 export type VaultTab = 'overview' | 'resumes' | 'jobs' | 'all' | 'trash'
@@ -101,6 +102,9 @@ export function VaultPage() {
           <Trash2 size={15} /> Trash
         </button>
       </div>
+
+      {/* Full-Text and Metadata Document Search */}
+      <VaultSearchSection />
 
       {/* Content Area */}
       <div key={refreshTrigger} style={{ minHeight: '400px' }}>

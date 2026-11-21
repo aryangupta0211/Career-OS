@@ -8,6 +8,7 @@ import { authRouter } from './auth/provisionRoute.js'
 import { dataRouter } from './data/routes.js'
 import { profileRouter } from './profile/routes.js'
 import { vaultRouter } from './vault/routes.js'
+import { intelligenceRouter } from './intelligence/routes.js'
 import { StorageProviderError } from './vault/storage.js'
 
 export const app = express()
@@ -23,6 +24,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/data', dataRouter)
 app.use('/api/profile', profileRouter)
 app.use('/api/vault', vaultRouter)
+app.use('/api/intelligence', intelligenceRouter)
 
 app.get('/api/health', (_request, response) => {
   response.json({

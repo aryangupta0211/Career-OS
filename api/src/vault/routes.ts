@@ -18,6 +18,7 @@ import {
   getStorageSummary,
   reconcileUserStorage,
 } from './quota.js'
+import { searchUserVaultDocuments } from '../intelligence/document-search.js'
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -212,6 +213,39 @@ vaultRouter.get('/files/:id/download', async (req: Request, res: Response): Prom
 
 // All subsequent routes require authenticated user
 vaultRouter.use(requireAuth)
+
+// ----------------------------------------------------
+// 0. VAULT GLOBAL DOCUMENT SEARCH
+// ----------------------------------------------------
+
+vaultRouter.get('/search', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.auth!.userId
+    const prisma = getPrismaClient()
+
+    const query = queryParam(req, 'query') || queryParam(req, 'search')
+    const category = queryParam(req, 'category')
+    const extension = queryParam(req, 'extension')
+    const companyId = queryParam(req, 'companyId')
+    const applicationId = queryParam(req, 'applicationId')
+    const page = Math.max(1, parseInt(queryParam(req, 'page') || '1', 10))
+    const limit = Math.min(100, Math.max(1, parseInt(queryParam(req, 'limit') || '25', 10)))
+
+    const result = await searchUserVaultDocuments(prisma, userId, {
+      query,
+      category,
+      extension,
+      companyId,
+      applicationId,
+      page,
+      limit,
+    })
+
+    res.json({ ok: true, ...result })
+  } catch (error) {
+    next(error)
+  }
+})
 
 // ----------------------------------------------------
 // 1. VAULT FILES

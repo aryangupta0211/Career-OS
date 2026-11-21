@@ -9,6 +9,8 @@ import type { Application, CareerEvent, Company, Contact, FollowUpTask, RecordTy
 import { CompanyResourcesTab } from './vault/CompanyResourcesTab'
 import { ApplicationDocumentsTab } from './ApplicationDocumentsTab'
 import { CompanySelectWithCreate } from './CompanySelectWithCreate'
+import { ApplicationIntelligenceSection } from './ApplicationIntelligenceSection'
+import { Sparkles } from 'lucide-react'
 
 interface RecordDialogProps {
   type: RecordType
@@ -139,7 +141,7 @@ export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDia
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [activeCompanyTab, setActiveCompanyTab] = useState<'details' | 'resources'>('details')
-  const [activeAppTab, setActiveAppTab] = useState<'details' | 'documents'>('details')
+  const [activeAppTab, setActiveAppTab] = useState<'details' | 'documents' | 'intelligence'>('details')
 
   // Selected company state for inline create support
   const record = getCurrentRecord(type, recordId, data)
@@ -308,6 +310,14 @@ export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDia
             >
               Application Documents
             </button>
+            <button
+              type="button"
+              className={`vault-tab-button ${activeAppTab === 'intelligence' ? 'active' : ''}`}
+              style={{ fontSize: '13px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
+              onClick={() => setActiveAppTab('intelligence')}
+            >
+              <Sparkles size={14} style={{ color: 'var(--accent)' }} /> Smart Prep & Matching
+            </button>
           </div>
         )}
 
@@ -326,6 +336,20 @@ export function RecordDialog({ type, recordId, initialDate, onClose }: RecordDia
               applicationId={recordId}
               jobTitle={(record as Application)?.jobTitle || 'Application'}
               resumeReference={(record as Application)?.resumeReference}
+            />
+          </div>
+        ) : type === 'application' && recordId && activeAppTab === 'intelligence' ? (
+          /* Sub-tab view: Smart Prep & Matching */
+          <div style={{ padding: '0 4px 16px' }}>
+            <ApplicationIntelligenceSection
+              applicationId={recordId}
+              currentResumeVersionId={selectedResumeVersion}
+              onSelectResumeVersion={(vId) => {
+                setSelectedResumeVersion(vId)
+                if (recordId) {
+                  updateRecord('application', recordId, { resumeReference: vId })
+                }
+              }}
             />
           </div>
         ) : (
