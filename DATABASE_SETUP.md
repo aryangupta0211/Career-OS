@@ -13,10 +13,10 @@ Last verified on 2026-10-29: after explicit project-owner approval, both feature
 
 ## 2. Store the URL privately
 
-Backend environment values belong in `api/.env`. The file is ignored by Git. Start from the safe template if needed:
+Backend environment values belong in `backend/.env`. The file is ignored by Git. Start from the safe template if needed:
 
 ```powershell
-Copy-Item api/.env.example api/.env
+Copy-Item backend/.env.example backend/.env
 ```
 
 Set `DATABASE_URL` to your Supabase PostgreSQL URI, for example:
@@ -27,7 +27,7 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=verify-full
 
 Replace placeholders with the dashboard values. URL-encode reserved characters in the username or password (for example, `#` becomes `%23`). Never paste the resulting URL into source files, issues, logs, or commits, and never commit `.env`.
 
-`PORT`, `WEB_ORIGIN`, and `NODE_ENV` are optional and have validated development defaults. Prisma's CLI and the API both load `api/.env` directly.
+`PORT`, `WEB_ORIGIN`, and `NODE_ENV` are optional and have validated development defaults. Prisma's CLI and the API both load `backend/.env` directly.
 
 ## 3. Verify connection before database changes
 
@@ -81,9 +81,9 @@ npm run prisma:migrate:deploy
 
 The frontend defaults to `VITE_DATA_MODE=demo`; `DemoCareerDataProvider` reads and writes `careeros-demo-v1` in the current browser. Settings can export a JSON backup, and local demo records are not uploaded automatically. There is no automated importer.
 
-To opt into API mode, set `VITE_DATA_MODE=api` and configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the frontend. Configure the matching `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `api/.env`. Token verification calls `supabase.auth.getUser(token)` and uses the least-privileged supported server configuration; a service-role key is not required solely to verify tokens. The API requires a confirmed email and resolves an internal user by Supabase UUID. Email alone is never used to link accounts.
+To opt into API mode, set `VITE_DATA_MODE=api` and configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the frontend. Configure the matching `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `backend/.env`. Token verification calls `supabase.auth.getUser(token)` and uses the least-privileged supported server configuration; a service-role key is not required solely to verify tokens. The API requires a confirmed email and resolves an internal user by Supabase UUID. Email alone is never used to link accounts.
 
-The API reads `api/.env` relative to its config module at startup and requires the exact backend variable names `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. The frontend-only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` names do not configure the API. After changing `api/.env`, restart the API process. `AUTH_NOT_CONFIGURED` means one or both backend variables are missing; it does not mean a bearer token was accepted or rejected.
+The API reads `backend/.env` relative to its config module at startup and requires the exact backend variable names `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. The frontend-only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` names do not configure the API. After changing `backend/.env`, restart the API process. `AUTH_NOT_CONFIGURED` means one or both backend variables are missing; it does not mean a bearer token was accepted or rejected.
 
 `POST /api/auth/provision` verifies a confirmed identity before creating its internal-user mapping. Authenticated `GET /api/data` reads the user's records; `POST /api/data/:kind` creates a record, and `PATCH`/`DELETE /api/data/:kind/:id` update or remove one. Supported kinds are `company`, `application`, `contact`, `task`, and `event`. The server derives `userId` from the verified mapping, validates related records against the same owner, returns owner-scoped 404s for unavailable records, and transactionally unlinks optional references before deletion. Activities are included in reads and unlinking but are not directly editable from the current UI. These endpoints use the Prisma singleton only behind authentication.
 
@@ -92,7 +92,7 @@ Authenticated profile routes `GET /api/profile` and `PATCH /api/profile` use the
 ## Troubleshooting and handoff
 
 - `npm run db:check` is read-only and reports an error code without exposing the connection URL.
-- The API build copies `prod-ca-2021.crt` to `api/dist/`; Supabase database connections require that certificate and use `rejectUnauthorized: true`. The API refuses a Supabase TLS connection if the certificate is missing.
+- The API build copies `prod-ca-2021.crt` to `backend/dist/`; Supabase database connections require that certificate and use `rejectUnauthorized: true`. The API refuses a Supabase TLS connection if the certificate is missing.
 - `GET http://localhost:3001/api/health` reports database state and the `authenticated-api` mode.
 - If an authenticated data or profile request returns `DATABASE_SCHEMA_OUTDATED`, compare the deployed database with the Prisma schema using `prisma migrate status` and `prisma migrate diff`. The profile migration was added after the last four-migration status check and is not applied.
 - If direct IPv6 connectivity is unavailable, use Supabase's session-pooler URI from the dashboard.

@@ -18,7 +18,7 @@ All processing operates locally using:
 ## 1. Modules Implemented
 
 ### 1.1 Module 6.1 — Job Description Text and Skill Extraction
-- **Location**: `api/src/intelligence/jd-extractor.ts`, `api/src/intelligence/document-processor.ts`, `api/src/intelligence/skills/`
+- **Location**: `backend/src/intelligence/jd-extractor.ts`, `backend/src/intelligence/document-processor.ts`, `backend/src/intelligence/skills/`
 - **Supported Formats**:
   - PDF: Extracted via `pdf-parse`. Detects scanned documents with no selectable text layer (< 15 characters) and flags them gracefully with `EMPTY` / `OCR_REQUIRED` status instead of producing corrupted text.
   - DOCX: Extracted via `mammoth.extractRawText`.
@@ -37,7 +37,7 @@ All processing operates locally using:
   - Implemented `src/components/vault/JdExtractionModal.tsx` allowing users to review, edit, add, or reject fields before applying them to the form.
 
 ### 1.2 Module 6.2 — Resume-to-Application Matching
-- **Location**: `api/src/intelligence/resume-matcher.ts`
+- **Location**: `backend/src/intelligence/resume-matcher.ts`
 - **Algorithm & Weights**:
   | Dimension | Weight |
   |---|---:|
@@ -56,7 +56,7 @@ All processing operates locally using:
   - Displays match percentage, matched vs missing skills, role tags, and an "Attach Version" button.
 
 ### 1.3 Module 6.3 — Automatic Preparation Checklist Generation
-- **Location**: `api/src/intelligence/preparation-generator.ts`
+- **Location**: `backend/src/intelligence/preparation-generator.ts`
 - **Mapping**: Skills mapped to specific interview preparation topics (e.g., Java -> OOP, Collections, Multithreading; SQL -> Joins, Indexing, Transactions; React -> Virtual DOM, Hooks, Performance; DSA -> Two-pointer, Hash Maps, Trees, Graphs).
 - **Categorization**: Auto-assigns categories (`Technical Prep`, `System Design`, `DSA Practice`, `Behavioral Prep`) and priorities (`High` for required skills, `Medium` for preferred).
 - **Scheduling**: Supports schedule generation within configurable deadline dates.
@@ -66,7 +66,7 @@ All processing operates locally using:
   - Click "Add Selected Tasks" to batch-create confirmed tasks in the database linked to the application. Tasks never auto-create without user approval.
 
 ### 1.4 Module 6.4 — SHA-256 Duplicate File Detection & Safe File Reuse
-- **Location**: `api/src/intelligence/file-hash.ts`, `api/src/vault/routes.ts`, `src/components/vault/VaultUploadDialog.tsx`
+- **Location**: `backend/src/intelligence/file-hash.ts`, `backend/src/vault/routes.ts`, `src/components/vault/VaultUploadDialog.tsx`
 - **Workflow**:
   1. Computes SHA-256 hash securely on backend.
   2. Queries active vault files belonging to the authenticated user (`where: { userId, sha256Hash, status: 'ACTIVE' }`). Strict user isolation guarantees zero cross-user leakage.
@@ -76,7 +76,7 @@ All processing operates locally using:
      - **Upload as New Copy**: Allows proceeding if user explicitly chooses.
 
 ### 1.5 Module 6.5 — Document Content & Metadata Search
-- **Location**: `api/src/intelligence/document-search.ts`, `src/components/vault/VaultSearchSection.tsx`
+- **Location**: `backend/src/intelligence/document-search.ts`, `src/components/vault/VaultSearchSection.tsx`
 - **Two Search Layers**:
   1. **Metadata Search**: Matches against display name, filename, description, tags, category, linked company, and job title.
   2. **Content Search**: Matches against text inside documents (e.g. linked JD description text, requirements, responsibilities).
@@ -86,7 +86,7 @@ All processing operates locally using:
   - Integrated into `src/pages/VaultPage.tsx`.
 
 ### 1.6 Module 6.6 — Smart Reminders & Career Insights
-- **Location**: `api/src/intelligence/insights.ts`, `src/components/DashboardInsightsSection.tsx`
+- **Location**: `backend/src/intelligence/insights.ts`, `src/components/DashboardInsightsSection.tsx`
 - **Deterministic Rules**:
   - Upcoming interviews (interviews within 7 days).
   - Overdue tasks (`dueAt < now` and status != `COMPLETED`).
@@ -117,7 +117,7 @@ All processing operates locally using:
 ## 3. Database & Schema Safety
 
 - **Prisma Schema**: `prisma/schema.prisma` already included `VaultFile.sha256Hash`, `JobDescription.requiredSkills`, `JobDescription.preferredSkills`, `JobDescription.descriptionText`, and `Task`.
-- **Migration Status**: Verified with `npx prisma migrate status --config=api/prisma.config.ts`:
+- **Migration Status**: Verified with `npx prisma migrate status --config=backend/prisma.config.ts`:
   - 6 migrations found.
   - Database schema is up-to-date.
   - Zero destructive changes or resets performed.
@@ -131,12 +131,12 @@ All processing operates locally using:
   - **Test Files**: 33 passed (100%)
   - **Tests**: 145 passed (100%)
   - **Intelligence Test Suites**:
-    - `api/src/intelligence/skills.test.ts` (6 tests passed)
-    - `api/src/intelligence/jd-extractor.test.ts` (4 tests passed)
-    - `api/src/intelligence/resume-matcher.test.ts` (4 tests passed)
-    - `api/src/intelligence/preparation-generator.test.ts` (3 tests passed)
-    - `api/src/intelligence/file-hash.test.ts` (3 tests passed)
-    - `api/src/intelligence/routes.test.ts` (6 tests passed)
+    - `backend/src/intelligence/skills.test.ts` (6 tests passed)
+    - `backend/src/intelligence/jd-extractor.test.ts` (4 tests passed)
+    - `backend/src/intelligence/resume-matcher.test.ts` (4 tests passed)
+    - `backend/src/intelligence/preparation-generator.test.ts` (3 tests passed)
+    - `backend/src/intelligence/file-hash.test.ts` (3 tests passed)
+    - `backend/src/intelligence/routes.test.ts` (6 tests passed)
 
 ### 4.2 Production Build Verification
 - **API Build**: `npm run build:api` completed with exit code 0 (`tsc -p tsconfig.json`).

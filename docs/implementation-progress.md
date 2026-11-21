@@ -8,7 +8,7 @@
 - Read-only `npm run db:check` succeeded and reported the application tables. `npx prisma migrate status` reported both checked-in migrations applied and the schema up to date; no migration was run.
 - `npm run prisma:validate` passed.
 - `npm run test`, `npm run lint`, `npm run build`, and `npm run build:api` passed at baseline. The initial API build omitted the CA certificate.
-- Updated the API build to copy the certificate and made Supabase database TLS fail closed if the certificate is missing. Verified the certificate is in `api/dist/` and reran `npm run db:check` successfully.
+- Updated the API build to copy the certificate and made Supabase database TLS fail closed if the certificate is missing. Verified the certificate is in `backend/dist/` and reran `npm run db:check` successfully.
 - Updated database setup and README connection-status statements based on the observed read-only checks.
 - Secret-pattern scanning returned only the documented example files; local environment variable names were checked without reading or printing values.
 
@@ -34,7 +34,7 @@
 - Auth unit tests cover verification and safe provisioning behavior. Live signup, email delivery, and confirmation have not been tested end-to-end.
 - `requireAuth` is applied to `/api/data`; `/api/auth/provision` independently verifies the bearer token and confirmed identity before provisioning.
 - Added mocked UI/provider tests for signed-out menu options, signup confirmation messaging, successful login, session restoration after provider remount, and sign-out. Added middleware tests for missing-token rejection and distinct UUID-to-internal-user mappings.
-- Fixed the local server configuration mismatch: frontend `.env.local` uses `VITE_SUPABASE_*`, while Express requires `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `api/.env`. The API env file now has the backend names populated from the matching local frontend project settings, without changing credentials in tracked files. A separate compiled API process loaded that config and returned 401 for a missing bearer token instead of `AUTH_NOT_CONFIGURED` 503.
+- Fixed the local server configuration mismatch: frontend `.env.local` uses `VITE_SUPABASE_*`, while Express requires `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `backend/.env`. The API env file now has the backend names populated from the matching local frontend project settings, without changing credentials in tracked files. A separate compiled API process loaded that config and returned 401 for a missing bearer token instead of `AUTH_NOT_CONFIGURED` 503.
 - Added middleware regressions for missing server configuration (503), valid token verification (`getUser(token)`), invalid token rejection (401), and UUID-scoped internal identity resolution.
 - The test command now scopes discovery to frontend/API source and the API build excludes test files, preventing generated `dist` tests from being rediscovered after a build.
 

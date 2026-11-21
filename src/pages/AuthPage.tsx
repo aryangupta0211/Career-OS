@@ -84,7 +84,7 @@ export function AuthPage({ page }: { page: AuthPageKind }) {
             )}
             {showPasswordFields && <label className="form-field"><span>Password</span><input name="password" type="password" autoComplete={page === 'login' ? 'current-password' : 'new-password'} required minLength={8} /></label>}
             {(page === 'signup' || page === 'recovery') && <label className="form-field"><span>Confirm password</span><input name="confirmPassword" type="password" autoComplete="new-password" required minLength={8} /></label>}
-            {!configured && <p className="auth-message" role="alert">Authentication is not configured. Set the public Supabase URL and publishable key in the frontend environment, and configure the same project in `api/.env`.</p>}
+            {!configured && <p className="auth-message" role="alert">Authentication is not configured. Set the public Supabase URL and publishable key in the frontend environment, and configure the same project in `backend/.env`.</p>}
             {auth.authError && <p className="auth-error" role="alert">{auth.authError}</p>}
             {error && <p className="auth-error" role="alert">{error}</p>}
             {notice && <p className="auth-message" role="status">{notice}</p>}

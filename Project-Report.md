@@ -12,7 +12,7 @@
 | Added migration `20261025000000_add_supabase_auth_id` (162 bytes) | `prisma/migrations/` tree + file contents | Adds `User.supabaseAuthId UUID UNIQUE`. Doc claims **it was applied**. |
 | `prisma/schema.prisma` now has `supabaseAuthId String? @unique @db.Uuid` | schema diff (7485 → 7541 bytes) | Schema matches migration. |
 | `.gitignore` now excludes `/project-context/` | `.gitignore` diff (371 → 422 bytes) | Good hygiene — the generated snapshot is not committed. |
-| Nothing else changed | All frontend files, `api/src/**`, README byte-identical to prior snapshot | The app is still 100 % demo-local. |
+| Nothing else changed | All frontend files, `backend/src/**`, README byte-identical to prior snapshot | The app is still 100 % demo-local. |
 
 **Bottom line up front:** The most important claim in this snapshot — *"the `supabaseAuthId` migration has been applied successfully"* — cannot be verified from the snapshot. Nothing else in the codebase lets me confirm it. **You still have exactly one blocker before any auth or CRUD work: prove the database is connected and the two migrations are applied.** The new design doc is excellent; the code is not yet started. Read Sections 4, 8, and 12 first.
 
@@ -26,7 +26,7 @@ CareerOS is a polished, single-user, browser-local React career-management app w
 2. **A schema migration that adds the identity anchor.** `User.supabaseAuthId UUID @unique` is the correct primary mapping key. The migration file is simple and safe (nullable column + unique index) — nothing destructive.
 3. **`.gitignore` now excludes `project-context/`.** Small, correct.
 
-What has **not** changed: the frontend still uses `DemoCareerDataProvider` and `localStorage`; the API still exposes only `/api/health`; `prisma/schema.prisma` and `api/src/db/client.ts` are unchanged; there is still no auth middleware, no CRUD route, no Supabase client, and no verification that the DB connection resolves today. The README *still* says the Supabase host cannot resolve, and the design doc hedges ("this environment cannot currently resolve/connect"). **This is still a demo app with a very good design document on top of it.**
+What has **not** changed: the frontend still uses `DemoCareerDataProvider` and `localStorage`; the API still exposes only `/api/health`; `prisma/schema.prisma` and `backend/src/db/client.ts` are unchanged; there is still no auth middleware, no CRUD route, no Supabase client, and no verification that the DB connection resolves today. The README *still* says the Supabase host cannot resolve, and the design doc hedges ("this environment cannot currently resolve/connect"). **This is still a demo app with a very good design document on top of it.**
 
 The single most valuable next action is unchanged: **prove the DB connection resolves and both migrations are applied** — otherwise the design doc's central assumption (`supabaseAuthId` migration applied) is unverified and any auth work built on it is built on sand.
 
@@ -50,7 +50,7 @@ The **Overview** dashboard surfaces metrics, a compact monthly calendar, upcomin
 Everything is **browser-local**. `DemoCareerDataProvider` (`src/context/CareerData.tsx`) holds `CareerData` in React state, hydrates from `localStorage` under `careeros-demo-v1`, and on every change writes the whole object back. No request hits `http://localhost:3001` except nothing — the `vite.config.ts` proxy exists but is unused.
 
 ### Backend today
-Only `/api/health`, which returns `{ status, service, mode: 'foundation-only', database: <status> }`. `database` is populated by `setDatabaseStatus()` in `api/src/server.ts` after a single `SELECT 1` at startup. No CRUD routes; no auth; no repository/service layer.
+Only `/api/health`, which returns `{ status, service, mode: 'foundation-only', database: <status> }`. `database` is populated by `setDatabaseStatus()` in `backend/src/server.ts` after a single `SELECT 1` at startup. No CRUD routes; no auth; no repository/service layer.
 
 ### Data that actually exists right now
 `src/data/demo.ts` — 7 companies, 11 applications, 9 contacts, 7 tasks, 4 events, 4 activities. Persisted only in a browser's `localStorage` for a given browser profile and origin.
@@ -76,7 +76,7 @@ Supabase browser SDK                           requireAuth middleware           
 Today's reality:
   Browser ── DemoCareerDataProvider ── localStorage   (100% of UI data)
   Express ── /api/health only
-  Supabase ── configured in api/.env (excluded); connection unverified
+  Supabase ── configured in backend/.env (excluded); connection unverified
   Migrations ── 2 files exist; applied status unverified
 ```
 
@@ -95,12 +95,12 @@ Today's reality:
 | `src/pages/Dashboard.tsx` | Metrics, compact calendar, next steps, recent apps | Unchanged |
 | `src/pages/DirectoryPages.tsx` | `DirectoryPage`, `TasksPage`, `CalendarPage`, `SettingsPage` in one file | Unchanged |
 | `src/types.ts` | Frontend domain types | **Unchanged** — no auth types, no API DTO types |
-| `api/src/app.ts` | Express, CORS, pino, `/api/health`, error handler | Unchanged |
-| `api/src/config.ts` | Zod env validation for `PORT/WEB_ORIGIN/NODE_ENV/DATABASE_URL` | Unchanged |
-| `api/src/db/client.ts` | Prisma singleton + `pg.Pool` with Supabase CA loading | Unchanged |
-| `api/src/db/status.ts` | In-memory DB status enum | Unchanged |
-| `api/src/server.ts` | Startup `SELECT 1`, graceful shutdown | Unchanged |
-| `api/src/db/check-connection.ts` | `db:check` script | Unchanged |
+| `backend/src/app.ts` | Express, CORS, pino, `/api/health`, error handler | Unchanged |
+| `backend/src/config.ts` | Zod env validation for `PORT/WEB_ORIGIN/NODE_ENV/DATABASE_URL` | Unchanged |
+| `backend/src/db/client.ts` | Prisma singleton + `pg.Pool` with Supabase CA loading | Unchanged |
+| `backend/src/db/status.ts` | In-memory DB status enum | Unchanged |
+| `backend/src/server.ts` | Startup `SELECT 1`, graceful shutdown | Unchanged |
+| `backend/src/db/check-connection.ts` | `db:check` script | Unchanged |
 | `prisma/schema.prisma` | Models + enums; **now includes `User.supabaseAuthId`** | Changed (this snapshot) |
 | `prisma/migrations/20261023000000_initial/` | Base tables | Unchanged |
 | `prisma/migrations/20261025000000_add_supabase_auth_id/` | **New** — adds nullable UUID column + unique index | Confirmed present; applied status **unverified** |
@@ -141,15 +141,15 @@ Today's reality:
 | Settings JSON export | **Implemented** | `SettingsPage` | Download only |
 | Zod validation on forms | **Partial** | `RecordDialog.tsx` validates only the first `required` field | Non-required fields not validated; see F3 |
 | `DemoCareerDataProvider` `localStorage` persistence | **Implemented** | `CareerData.tsx` | Read is defensive (Zod-validated); invalid data → demo seed |
-| Express health endpoint | **Implemented** | `api/src/app.ts` | Returns in-memory status |
+| Express health endpoint | **Implemented** | `backend/src/app.ts` | Returns in-memory status |
 | Prisma schema | **Implemented** | `prisma/schema.prisma` | `supabaseAuthId` added |
 | Initial migration | **Implemented (file)** | `prisma/migrations/20261023000000_initial/migration.sql` | Applied status unverified |
 | `supabaseAuthId` migration | **Implemented (file)** | `prisma/migrations/20261025000000_add_supabase_auth_id/migration.sql` | **Doc claims applied — unverified** |
-| `db:check` script | **Implemented** | `api/src/db/check-connection.ts` | — |
+| `db:check` script | **Implemented** | `backend/src/db/check-connection.ts` | — |
 | Supabase Auth (sign-up, sign-in, session) | **Missing** | No `@supabase/*` in `package.json`; no auth UI; no middleware | Design exists |
-| Express auth middleware (`requireAuth`) | **Missing** | `api/src/app.ts` has no auth | Design exists |
+| Express auth middleware (`requireAuth`) | **Missing** | `backend/src/app.ts` has no auth | Design exists |
 | Internal user provisioning (`supabaseAuthId` mapping flow) | **Missing** | — | Design exists |
-| CRUD API routes (`/api/companies`, `/api/applications`, …) | **Missing** | `api/src/app.ts` has only `/api/health` | — |
+| CRUD API routes (`/api/companies`, `/api/applications`, …) | **Missing** | `backend/src/app.ts` has only `/api/health` | — |
 | Frontend → API data provider | **Missing** | No `fetch` to `/api` anywhere | — |
 | Row-level security | **Not planned initially** | Design doc §7 says app-layer is primary | Acceptable first step |
 | Database verified connected | **Unverified** | README still says "cannot resolve" | **Run `db:check`** |
@@ -198,11 +198,11 @@ The doc is written as a contract. It's careful about the things that usually go 
 - **Evidence:** `src/components/RecordDialog.tsx`. No focus trap, no focus restoration on close.
 - **Impact:** Accessibility gap; keyboard users lose context. Fix before public deploy (`focus-trap-react` or a small custom hook).
 
-### F7 (P3) — `prod-ca-2021.crt` is not copied into `api/dist/`
-- **Evidence:** `api/tsconfig.json` includes only `src/**/*.ts`; `api/package.json` `"build": "tsc -p tsconfig.json"`. The `db:check` script reads `../../prod-ca-2021.crt` relative to `api/src/db/client.ts` → resolves to `api/prod-ca-2021.crt` **in dev**. In production (`api/dist/db/client.js`), it resolves to `api/dist/prod-ca-2021.crt` — **absent**, so `fs.existsSync` is false and the code silently falls into the non-Supabase branch (plain `pg.Pool` with the connection string, no explicit CA). Behavior is functionally different from dev.
+### F7 (P3) — `prod-ca-2021.crt` is not copied into `backend/dist/`
+- **Evidence:** `backend/tsconfig.json` includes only `src/**/*.ts`; `backend/package.json` `"build": "tsc -p tsconfig.json"`. The `db:check` script reads `../../prod-ca-2021.crt` relative to `backend/src/db/client.ts` → resolves to `backend/prod-ca-2021.crt` **in dev**. In production (`backend/dist/db/client.js`), it resolves to `backend/dist/prod-ca-2021.crt` — **absent**, so `fs.existsSync` is false and the code silently falls into the non-Supabase branch (plain `pg.Pool` with the connection string, no explicit CA). Behavior is functionally different from dev.
 - **Impact:** Production `db:check` may fail TLS verification, or (depending on the `pg` version and the connection string's `sslmode`) may connect without `rejectUnauthorized: true`. **Do not assume it's secure.** This is a "silent fallback" risk.
 - **Verification:** `npm run build:api`, then `Test-Path api\dist\prod-ca-2021.crt` → `False`.
-- **Fix:** Add `"build": "tsc -p tsconfig.json && node -e \"require('fs').copyFileSync('prod-ca-2021.crt','dist/prod-ca-2021.crt')\""` to `api/package.json`, or move the cert loading into a module that can be bundled.
+- **Fix:** Add `"build": "tsc -p tsconfig.json && node -e \"require('fs').copyFileSync('prod-ca-2021.crt','dist/prod-ca-2021.crt')\""` to `backend/package.json`, or move the cert loading into a module that can be bundled.
 
 ### F8 (P3) — `AppShell` "LogOut" button does not log out
 - **Evidence:** `src/components/AppShell.tsx` — the user menu has `<button onClick={() => setMenuOpen(false)}><LogOut size={15} /> Close menu</button>`. The label says "Close menu" but the icon is a logout icon; the action only closes the menu.
@@ -210,7 +210,7 @@ The doc is written as a contract. It's careful about the things that usually go 
 - **Fix:** Rename to "Sign out" and wire to Supabase `signOut()`.
 
 ### F9 (P3) — `data/status.ts` reflects only the startup check, not live DB state
-- **Evidence:** `api/src/db/status.ts` sets `databaseStatus` once at startup via `server.ts`. `GET /api/health` reports this cached value.
+- **Evidence:** `backend/src/db/status.ts` sets `databaseStatus` once at startup via `server.ts`. `GET /api/health` reports this cached value.
 - **Impact:** If DB goes down after startup, `health` still says `connected`. Fine for a foundation; will be a monitoring gap later.
 - **Fix:** Add a lightweight `SELECT 1` cache with a short TTL when deploying.
 
@@ -246,7 +246,7 @@ These are strong inferences, not confirmed defects.
 - **Fix:** Verify the JWT locally against the project's JWKS (Supabase exposes `https://<project>.supabase.co/auth/v1/.well-known/jwks.json`; validate signature + `exp` + `aud` + `iss`), falling back to `getUser(token)` only for revocation checks. Keep the fail-closed semantics the doc already prescribes. **Do not implement before the DB is verified.**
 
 ### L3 (P2) — No CORS tightening yet; `WEB_ORIGIN` is a single value
-- **Evidence:** `api/src/app.ts` CORS uses `origin: config.WEB_ORIGIN`. Good default. But the CORS `methods` allow `PUT/PATCH/DELETE` — correct — and `credentials: false` — also correct for bearer-token auth (no cookies). When auth lands, keep `credentials: false` and rely on `Authorization` header. If you ever move to cookie sessions, you must flip to `credentials: true` and pin `WEB_ORIGIN` to a single production origin.
+- **Evidence:** `backend/src/app.ts` CORS uses `origin: config.WEB_ORIGIN`. Good default. But the CORS `methods` allow `PUT/PATCH/DELETE` — correct — and `credentials: false` — also correct for bearer-token auth (no cookies). When auth lands, keep `credentials: false` and rely on `Authorization` header. If you ever move to cookie sessions, you must flip to `credentials: true` and pin `WEB_ORIGIN` to a single production origin.
 - **Impact:** None now. Design decision to lock in.
 
 ### L4 (P2) — No rate limiting on `/api/health` or any future auth callback
@@ -263,7 +263,7 @@ These are strong inferences, not confirmed defects.
 - **Evidence:** `src/**/*.test.ts` totals 3 files (demo, calendar, followUps). No API tests. No auth tests. `vite.config.ts` still has no `test` block (existing tests are pure Node, so they pass — but adding a React component test would fail silently without `environment: 'jsdom'`).
 - **Fix:** See §14.
 
-### L8 (P3) — `api/src/db/client.ts` silently falls back to non-Supabase branch if `isSupabase` is false or CA absent
+### L8 (P3) — `backend/src/db/client.ts` silently falls back to non-Supabase branch if `isSupabase` is false or CA absent
 - **Evidence:** `if (ca && isSupabase) { … strict SSL … } else { … connectionString only … }`.
 - **Impact:** A typo in the Supabase hostname (say, `foobar.supabase.co.evil.example`) will *not* take the strict-SSL branch and will connect with default `pg` SSL semantics. For a student project this is low probability, but worth a defensive log line: `if (!isSupabase) console.warn('DATABASE_URL host is not Supabase; TLS CA not enforced.')`.
 - **Fix:** Log a warning, or make the CA mandatory when `ssl=require` is in the URL.
@@ -274,10 +274,10 @@ These are strong inferences, not confirmed defects.
 
 **Confirmed today (not exploitable because there is no data behind it):**
 
-1. **No authentication anywhere.** `api/src/app.ts` and `src/App.tsx` have no auth guard, no session, no login. All data is local; nothing is exposed. **Impact the moment you deploy any CRUD endpoint: unauthorized access to every user's records.** The design doc correctly identifies this and mandates `requireAuth` first. Good.
+1. **No authentication anywhere.** `backend/src/app.ts` and `src/App.tsx` have no auth guard, no session, no login. All data is local; nothing is exposed. **Impact the moment you deploy any CRUD endpoint: unauthorized access to every user's records.** The design doc correctly identifies this and mandates `requireAuth` first. Good.
 2. **`localStorage` for demo data.** PII (contact emails, phone numbers, LinkedIn URLs) sits in the browser's `localStorage`. On a shared machine another OS user cannot read it, but **XSS on the same origin can exfiltrate it**. Add CSP before deploying the app publicly. **Not a bug today; a real risk tomorrow.**
-3. **`.gitignore` correctly ignores `api/.env` and `.env.*`; the `!` exceptions allow `.env.example`.** Confirmed correct.
-4. **`DATABASE_SETUP.md` and `api/.env.example` are excluded by the snapshot's secret scanner.** They contain at least one placeholder-shaped Postgres URL (matched the `postgres://user:pass@host` heuristic). **Verify locally that these are placeholders, not real credentials.** The prior audit flagged this; unchanged. If real → rotate Supabase DB password.
+3. **`.gitignore` correctly ignores `backend/.env` and `.env.*`; the `!` exceptions allow `.env.example`.** Confirmed correct.
+4. **`DATABASE_SETUP.md` and `backend/.env.example` are excluded by the snapshot's secret scanner.** They contain at least one placeholder-shaped Postgres URL (matched the `postgres://user:pass@host` heuristic). **Verify locally that these are placeholders, not real credentials.** The prior audit flagged this; unchanged. If real → rotate Supabase DB password.
 5. **`prod-ca-2021.crt` is a certificate, not a secret.** Fine to commit. But see F7 — it isn't copied into `dist/`, so production TLS behavior differs from dev.
 
 **Design-decision risks in the new auth design (call these out now, not later):**

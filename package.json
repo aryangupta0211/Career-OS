@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "workspaces": [
-    "api"
+    "backend"
   ],
   "scripts": {
     "dev": "concurrently -k -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
@@ -16,7 +16,7 @@
     "start:api": "npm run start --workspace @careeros/api",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run src api/src",
+    "test": "vitest run src backend/src",
     "prisma:generate": "npm run prisma:generate --workspace @careeros/api",
     "prisma:validate": "npm run prisma:validate --workspace @careeros/api",
     "prisma:migrate": "npm run prisma:migrate --workspace @careeros/api",

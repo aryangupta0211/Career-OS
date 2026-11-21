@@ -24,7 +24,7 @@ CareerOS is a career-management workspace for applications, companies, contacts,
 ## Project layout
 
 ```text
-api/
+backend/
   src/auth/            Supabase verification, internal-user mapping, and provisioning
   src/data/             Authenticated owner-scoped record API
   src/db/              Prisma singleton and read-only connection check
@@ -51,7 +51,7 @@ npm install
 npm run dev
 ```
 
-The frontend runs at `http://localhost:5173`; Express runs at `http://localhost:3001`. The frontend is proxied to the API for `/api` requests. Configure backend settings in `api/.env`; see [DATABASE_SETUP.md](./DATABASE_SETUP.md) for Supabase and Prisma instructions.
+The frontend runs at `http://localhost:5173`; Express runs at `http://localhost:3001`. The frontend is proxied to the API for `/api` requests. Configure backend settings in `backend/.env`; see [DATABASE_SETUP.md](./DATABASE_SETUP.md) for Supabase and Prisma instructions.
 
 Useful checks:
 
@@ -69,9 +69,14 @@ npm run db:check
 
 `VITE_DATA_MODE` defaults to `demo`. In demo mode, editable records are saved to this browser's `localStorage` under `careeros-demo-v1`; existing browser data is retained and can be downloaded from Settings. Nothing is uploaded automatically. There is no import or cloud migration flow yet.
 
-In the profile menu, signed-out users can open **Sign in** or **Create account** even while demo mode is active. To use real Supabase authentication, add the project URL and publishable key as `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the frontend environment, and as `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `api/.env`. Set `VITE_DATA_MODE=api` to select the authenticated API provider; the default remains `demo`. API mode does not import demo records. Confirmed Supabase identities are mapped to internal users by Supabase UUID; email alone is never used to link accounts. The server verifies each bearer token with `supabase.auth.getUser(token)` and rejects unconfirmed identities. No service-role key is required for token verification.
+In the profile menu, signed-out users can open **Sign in** or **Create account** even while demo mode is active. To use real Supabase authentication, add the project URL and publishable key as `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the frontend environment, and as `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `backend/.env`. Set `VITE_DATA_MODE=api` to select the authenticated API provider; the default remains `demo`. API mode does not import demo records. Confirmed Supabase identities are mapped to internal users by Supabase UUID; email alone is never used to link accounts. The server verifies each bearer token with `supabase.auth.getUser(token)` and rejects unconfirmed identities. No service-role key is required for token verification.
 
 The frontend calls relative `/api` endpoints. Vite proxies these requests to `http://localhost:3001` in development; production hosting must provide a same-origin `/api` reverse proxy. There is no separate API base URL setting.
+
+## Deployment
+
+- **Vercel:** Keep the project Root Directory at the repository root. Use `npm run build:web` as the build command and `dist` as the output directory. `vercel.json` forwards `/api/*` to Render. The backend lives in `backend/`, not Vercel's reserved root `api/` functions directory.
+- **Render:** Update the existing service Root Directory from `api` to `backend` if it was set to the old folder. Use `npm run build` for the build command and `npm run start` for the start command. Keep the existing backend environment variables configured in Render; no database or auth settings need to change.
 
 For local Supabase Auth, set the dashboard Site URL to `http://localhost:5173` and allow redirects to `http://localhost:5173/auth/confirm` and `http://localhost:5173/auth/recovery`. Sign-up requires email confirmation before API access.
 

@@ -26,6 +26,6 @@ checkConnection().catch((error: unknown) => {
   const databaseCode = error instanceof Error && 'meta' in error && error.meta && typeof error.meta === 'object' && 'code' in error.meta && typeof error.meta.code === 'string'
     ? error.meta.code
     : undefined
-  console.error(`PostgreSQL connection check failed (${code}${databaseCode ? `/${databaseCode}` : ''}). Verify api/.env without sharing its secret.`)
+  console.error(`PostgreSQL connection check failed (${code}${databaseCode ? `/${databaseCode}` : ''}). Verify backend/.env without sharing its secret.`)
   process.exitCode = 1
 })

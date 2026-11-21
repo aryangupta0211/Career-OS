@@ -15,17 +15,17 @@ dist-ssr
 .env.*
 !.env.example
 !.env.*.example
-api/.env
-api/.env.*
-!api/.env.example
-!api/.env.*.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+!backend/.env.*.example
 coverage
-api/dist
+backend/dist
 .env
 .env.*
 !.env.example
 !.env.local.example
-api/.env
+backend/.env
 
 # Editor directories and files
 .vscode/*

@@ -67,7 +67,7 @@ Phase 5 transitions CareerOS from siloed directory tables and isolated Vault sto
 ## 2. Database & API Architecture Verification
 
 ### 2.1 Supabase Database Migrations
-- Verified migration status against production Supabase PostgreSQL via `npx prisma migrate status --config=api/prisma.config.ts`.
+- Verified migration status against production Supabase PostgreSQL via `npx prisma migrate status --config=backend/prisma.config.ts`.
 - Database is up-to-date with 6 applied migrations:
   1. `20261028000000_init_auth_and_records`
   2. `20261028120000_add_user_profile`
@@ -75,10 +75,10 @@ Phase 5 transitions CareerOS from siloed directory tables and isolated Vault sto
   4. `20261029000000_auth_hardening_and_session_cleanup`
   5. `20261031000000_add_storage_and_canonical_models`
   6. `20261106000000_add_vault_module`
-- Prisma schema validation (`npx prisma validate --config=api/prisma.config.ts`) passed with 0 errors.
+- Prisma schema validation (`npx prisma validate --config=backend/prisma.config.ts`) passed with 0 errors.
 
 ### 2.2 Backend Vault Endpoints
-The following endpoints in `api/src/vault/routes.ts` service Phase 5:
+The following endpoints in `backend/src/vault/routes.ts` service Phase 5:
 - `GET /api/vault/job-descriptions` & `POST /api/vault/job-descriptions`
 - `GET /api/vault/applications/:applicationId/documents`
 - `POST /api/vault/applications/:applicationId/documents`
@@ -102,7 +102,7 @@ Vitest executed across all API and frontend test suites:
   - `src/components/CompanySelectWithCreate.test.tsx`: Search, inline company creation, duplicate warning, and custom creation callbacks.
   - `src/components/RecordDialog.test.tsx`: Modal lifecycle and field rendering.
   - `src/pages/VaultPage.test.tsx`: Overview, storage summary, navigation tabs, and upload dialogs.
-  - `api/src/vault/routes.test.ts`: Vault API routes, signed URLs, and file operations.
+  - `backend/src/vault/routes.test.ts`: Vault API routes, signed URLs, and file operations.
   - `src/components/AppShell.auth.test.tsx`: Header navigation, quick menus, and session handling.
 
 ### 3.2 Production Build Verification
