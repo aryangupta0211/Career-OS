@@ -1,5 +1,5 @@
 ﻿PROJECT CONTEXT SNAPSHOT
-Generated: 2026-11-16 13:41:35 +05:30
+Generated: 2026-11-21 13:32:27 +05:30
 Project root: E:\ARYAN\Projects\CareerOS
 Output file: project-context/project-context.txt
 PowerShell version: 5.1.26100.9818
@@ -11,44 +11,45 @@ secret heuristics are excluded. Detection is heuristic and cannot guarantee
 that every secret is found. Review the generated snapshot before uploading.
 
 REPOSITORY OVERVIEW
-Candidate files: 149
+Candidate files: 150
 Excluded/skipped files so far: 5
 
 ========================================================================================
 PROJECT DIRECTORY TREE
 ========================================================================================
 +-- .tsupgrader/
-+-- api/
++-- backend/
 +-- docs/
 +-- prisma/
 +-- public/
 +-- src/
 +-- .env.example (254 bytes)
-+-- .gitignore (477 bytes)
++-- .gitignore (501 bytes)
 +-- .oxlintrc.json (245 bytes)
 +-- Career OS Optimization.txt (19924 bytes)
-+-- DATABASE_SETUP.md (8766 bytes)
++-- DATABASE_SETUP.md (8798 bytes)
 +-- generate-context.ps1 (24683 bytes)
 +-- index.html (868 bytes)
-+-- package.json (1782 bytes)
-+-- package-lock.json (279541 bytes)
-+-- Project-Report.md (33279 bytes)
-+-- README.md (7504 bytes)
++-- package.json (1828 bytes)
++-- package-lock.json (279553 bytes)
++-- Project-Report.md (33391 bytes)
++-- README.md (8133 bytes)
 +-- tsconfig.app.json (675 bytes)
 +-- tsconfig.json (119 bytes)
 +-- tsconfig.node.json (578 bytes)
++-- vercel.json (246 bytes)
 +-- vite.config.ts (268 bytes)
     +-- runtime-validation/
     +-- src/
     +-- .env.example (490 bytes)
-    +-- package.json (1209 bytes)
+    +-- package.json (1253 bytes)
     +-- prisma.config.ts (422 bytes)
     +-- prod-ca-2021.crt (1368 bytes)
     +-- tsconfig.json (465 bytes)
-    +-- authentication-authorization-design.md (22151 bytes)
-    +-- implementation-progress.md (13873 bytes)
-    +-- phase5_implementation_report.md (9372 bytes)
-    +-- phase6_lite_implementation_report.md (9787 bytes)
+    +-- authentication-authorization-design.md (22155 bytes)
+    +-- implementation-progress.md (13881 bytes)
+    +-- phase5_implementation_report.md (9388 bytes)
+    +-- phase6_lite_implementation_report.md (9851 bytes)
     +-- migrations/
     +-- schema.prisma (15909 bytes)
     +-- favicon.svg (255 bytes)
@@ -126,7 +127,7 @@ PROJECT DIRECTORY TREE
         +-- taskDueDate.ts (168 bytes)
         +-- vaultApi.ts (16727 bytes)
         +-- vaultDemo.ts (16956 bytes)
-        +-- AuthPage.tsx (6618 bytes)
+        +-- AuthPage.tsx (6622 bytes)
         +-- Dashboard.tsx (8820 bytes)
         +-- DirectoryPages.test.ts (355 bytes)
         +-- DirectoryPages.tsx (18429 bytes)
@@ -144,7 +145,7 @@ PROJECT DIRECTORY TREE
             +-- supabaseClient.ts (601 bytes)
             +-- routes.test.ts (9958 bytes)
             +-- routes.ts (23621 bytes)
-            +-- check-connection.ts (1339 bytes)
+            +-- check-connection.ts (1343 bytes)
             +-- client.ts (2006 bytes)
             +-- status.ts (311 bytes)
             +-- skills/
@@ -160,7 +161,7 @@ PROJECT DIRECTORY TREE
             +-- preparation-generator.ts (3019 bytes)
             +-- resume-matcher.test.ts (3161 bytes)
             +-- resume-matcher.ts (7418 bytes)
-            +-- routes.test.ts (8428 bytes)
+            +-- routes.test.ts (8468 bytes)
             +-- routes.ts (13482 bytes)
             +-- skills.test.ts (3101 bytes)
             +-- types.ts (3706 bytes)
@@ -219,7 +220,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 
 ----------------------------------------------------------------------------------------
 FILE: .gitignore
-SIZE: 477 bytes
+SIZE: 501 bytes
 ----------------------------------------------------------------------------------------
 # Logs
 logs
@@ -238,17 +239,17 @@ dist-ssr
 .env.*
 !.env.example
 !.env.*.example
-api/.env
-api/.env.*
-!api/.env.example
-!api/.env.*.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+!backend/.env.*.example
 coverage
-api/dist
+backend/dist
 .env
 .env.*
 !.env.example
 !.env.local.example
-api/.env
+backend/.env
 
 # Editor directories and files
 .vscode/*
@@ -537,8 +538,8 @@ SIZE: 10708 bytes
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/package.json
-SIZE: 1209 bytes
+FILE: backend/package.json
+SIZE: 1253 bytes
 ----------------------------------------------------------------------------------------
 {
   "name": "@careeros/api",
@@ -547,6 +548,7 @@ SIZE: 1209 bytes
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "prebuild": "npm run prisma:generate",
     "build": "tsc -p tsconfig.json && node --input-type=module -e \"import { copyFileSync } from 'node:fs'; copyFileSync('prod-ca-2021.crt', 'dist/prod-ca-2021.crt')\"",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
@@ -583,7 +585,7 @@ SIZE: 1209 bytes
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/prisma.config.ts
+FILE: backend/prisma.config.ts
 SIZE: 422 bytes
 ----------------------------------------------------------------------------------------
 import { dirname, resolve } from 'node:path'
@@ -602,7 +604,7 @@ export default defineConfig({
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/app.test.ts
+FILE: backend/src/app.test.ts
 SIZE: 3753 bytes
 ----------------------------------------------------------------------------------------
 import { once } from 'node:events'
@@ -706,7 +708,7 @@ describe('API error handling', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/app.ts
+FILE: backend/src/app.ts
 SIZE: 3955 bytes
 ----------------------------------------------------------------------------------------
 import cors from 'cors'
@@ -805,7 +807,7 @@ app.use(errorHandler)
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/identity.test.ts
+FILE: backend/src/auth/identity.test.ts
 SIZE: 3561 bytes
 ----------------------------------------------------------------------------------------
 import { describe, expect, it, vi } from 'vitest'
@@ -879,7 +881,7 @@ describe('Supabase bearer verification', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/identity.ts
+FILE: backend/src/auth/identity.ts
 SIZE: 3614 bytes
 ----------------------------------------------------------------------------------------
 export interface VerifiedSupabaseIdentity {
@@ -968,7 +970,7 @@ export async function resolveInternalUser(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/middleware.test.ts
+FILE: backend/src/auth/middleware.test.ts
 SIZE: 4774 bytes
 ----------------------------------------------------------------------------------------
 import { once } from 'node:events'
@@ -1094,7 +1096,7 @@ describe('requireAuth middleware', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/middleware.ts
+FILE: backend/src/auth/middleware.ts
 SIZE: 1854 bytes
 ----------------------------------------------------------------------------------------
 import type { RequestHandler } from 'express'
@@ -1150,7 +1152,7 @@ export const requireAuth: RequestHandler = async (request, response, next) => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/provisioning.test.ts
+FILE: backend/src/auth/provisioning.test.ts
 SIZE: 3092 bytes
 ----------------------------------------------------------------------------------------
 import { describe, expect, it } from 'vitest'
@@ -1227,7 +1229,7 @@ describe('internal user provisioning', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/provisioning.ts
+FILE: backend/src/auth/provisioning.ts
 SIZE: 2445 bytes
 ----------------------------------------------------------------------------------------
 import type { InternalUserMapping, VerifiedSupabaseIdentity } from './identity.js'
@@ -1298,7 +1300,7 @@ async function syncVerifiedEmail(user: ProvisionedUser, email: string, repositor
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/provisionRoute.ts
+FILE: backend/src/auth/provisionRoute.ts
 SIZE: 2319 bytes
 ----------------------------------------------------------------------------------------
 import { Router } from 'express'
@@ -1355,7 +1357,7 @@ authRouter.post('/provision', async (request, response) => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/auth/supabaseClient.ts
+FILE: backend/src/auth/supabaseClient.ts
 SIZE: 601 bytes
 ----------------------------------------------------------------------------------------
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -1382,7 +1384,7 @@ export function getSupabaseAuthClient() {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/config.ts
+FILE: backend/src/config.ts
 SIZE: 1904 bytes
 ----------------------------------------------------------------------------------------
 import { dirname, resolve } from 'node:path'
@@ -1429,7 +1431,7 @@ export const config = result.data
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/data/routes.test.ts
+FILE: backend/src/data/routes.test.ts
 SIZE: 9958 bytes
 ----------------------------------------------------------------------------------------
 import { once } from 'node:events'
@@ -1663,7 +1665,7 @@ describe('owner-scoped data API routes', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/data/routes.ts
+FILE: backend/src/data/routes.ts
 SIZE: 23621 bytes
 ----------------------------------------------------------------------------------------
 import { Router } from 'express'
@@ -2153,8 +2155,8 @@ dataRouter.delete('/:kind/:id', async (request, response) => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/db/check-connection.ts
-SIZE: 1339 bytes
+FILE: backend/src/db/check-connection.ts
+SIZE: 1343 bytes
 ----------------------------------------------------------------------------------------
 import { disconnectPrismaClient, getPrismaClient } from './client.js'
 
@@ -2184,14 +2186,14 @@ checkConnection().catch((error: unknown) => {
   const databaseCode = error instanceof Error && 'meta' in error && error.meta && typeof error.meta === 'object' && 'code' in error.meta && typeof error.meta.code === 'string'
     ? error.meta.code
     : undefined
-  console.error(`PostgreSQL connection check failed (${code}${databaseCode ? `/${databaseCode}` : ''}). Verify api/.env without sharing its secret.`)
+  console.error(`PostgreSQL connection check failed (${code}${databaseCode ? `/${databaseCode}` : ''}). Verify backend/.env without sharing its secret.`)
   process.exitCode = 1
 })
 
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/db/client.ts
+FILE: backend/src/db/client.ts
 SIZE: 2006 bytes
 ----------------------------------------------------------------------------------------
 import fs from 'node:fs'
@@ -2265,7 +2267,7 @@ export async function disconnectPrismaClient() {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/db/status.ts
+FILE: backend/src/db/status.ts
 SIZE: 311 bytes
 ----------------------------------------------------------------------------------------
 export type DatabaseStatus = 'not-configured' | 'configured' | 'connected' | 'unavailable'
@@ -2283,7 +2285,7 @@ export function getDatabaseStatus() {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/document-processor.ts
+FILE: backend/src/intelligence/document-processor.ts
 SIZE: 3160 bytes
 ----------------------------------------------------------------------------------------
 import path from 'node:path'
@@ -2396,7 +2398,7 @@ export async function extractTextFromBuffer(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/document-search.ts
+FILE: backend/src/intelligence/document-search.ts
 SIZE: 6014 bytes
 ----------------------------------------------------------------------------------------
 import type { PrismaClient } from '@prisma/client'
@@ -2593,7 +2595,7 @@ export async function searchUserVaultDocuments(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/file-hash.test.ts
+FILE: backend/src/intelligence/file-hash.test.ts
 SIZE: 2348 bytes
 ----------------------------------------------------------------------------------------
 import { describe, it, expect, vi } from 'vitest'
@@ -2666,7 +2668,7 @@ describe('File Hash & Duplicate Detection', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/file-hash.ts
+FILE: backend/src/intelligence/file-hash.ts
 SIZE: 2076 bytes
 ----------------------------------------------------------------------------------------
 import crypto from 'node:crypto'
@@ -2748,7 +2750,7 @@ export async function checkFileDuplicate(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/index.ts
+FILE: backend/src/intelligence/index.ts
 SIZE: 354 bytes
 ----------------------------------------------------------------------------------------
 export * from './types.js'
@@ -2766,7 +2768,7 @@ export * from './insights.js'
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/insights.ts
+FILE: backend/src/intelligence/insights.ts
 SIZE: 7093 bytes
 ----------------------------------------------------------------------------------------
 import type { PrismaClient } from '@prisma/client'
@@ -2973,7 +2975,7 @@ export async function generateSmartInsights(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/jd-extractor.test.ts
+FILE: backend/src/intelligence/jd-extractor.test.ts
 SIZE: 3055 bytes
 ----------------------------------------------------------------------------------------
 import { describe, it, expect } from 'vitest'
@@ -3060,7 +3062,7 @@ Application Deadline: December 31, 2026.
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/jd-extractor.ts
+FILE: backend/src/intelligence/jd-extractor.ts
 SIZE: 10931 bytes
 ----------------------------------------------------------------------------------------
 import { matchSkillsInText } from './skills/matcher.js'
@@ -3358,7 +3360,7 @@ export function extractJDFromText(rawText: string): ExtractedJDData {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/preparation-generator.test.ts
+FILE: backend/src/intelligence/preparation-generator.test.ts
 SIZE: 2091 bytes
 ----------------------------------------------------------------------------------------
 import { describe, it, expect } from 'vitest'
@@ -3426,7 +3428,7 @@ describe('Preparation Generator', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/preparation-generator.ts
+FILE: backend/src/intelligence/preparation-generator.ts
 SIZE: 3019 bytes
 ----------------------------------------------------------------------------------------
 import { SKILL_DICTIONARY } from './skills/dictionary.js'
@@ -3511,7 +3513,7 @@ export function generatePreparationTasks(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/resume-matcher.test.ts
+FILE: backend/src/intelligence/resume-matcher.test.ts
 SIZE: 3161 bytes
 ----------------------------------------------------------------------------------------
 import { describe, it, expect } from 'vitest'
@@ -3594,7 +3596,7 @@ describe('Resume Matcher', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/resume-matcher.ts
+FILE: backend/src/intelligence/resume-matcher.ts
 SIZE: 7418 bytes
 ----------------------------------------------------------------------------------------
 import type { ResumeMatchScore } from './types.js'
@@ -3809,8 +3811,8 @@ export function rankResumesForApplication(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/routes.test.ts
-SIZE: 8428 bytes
+FILE: backend/src/intelligence/routes.test.ts
+SIZE: 8468 bytes
 ----------------------------------------------------------------------------------------
 import { once } from 'node:events'
 import type { AddressInfo } from 'node:net'
@@ -3856,7 +3858,7 @@ vi.mock('../auth/middleware.js', () => ({
     }
     const token = authHeader.slice(7)
     const userId = token === 'user-b' ? 'user-b' : 'user-a'
-    request.auth = { userId, token }
+    request.auth = { userId, email: `${userId}@example.test`, name: userId }
     next()
   },
 }))
@@ -4074,7 +4076,7 @@ Requirements:
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/routes.ts
+FILE: backend/src/intelligence/routes.ts
 SIZE: 13482 bytes
 ----------------------------------------------------------------------------------------
 import { Router, type Request, type Response, type NextFunction } from 'express'
@@ -4486,7 +4488,7 @@ intelligenceRouter.get(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/skills.test.ts
+FILE: backend/src/intelligence/skills.test.ts
 SIZE: 3101 bytes
 ----------------------------------------------------------------------------------------
 import { describe, it, expect } from 'vitest'
@@ -4565,7 +4567,7 @@ describe('Skill Dictionary & Matcher', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/skills/dictionary.ts
+FILE: backend/src/intelligence/skills/dictionary.ts
 SIZE: 24093 bytes
 ----------------------------------------------------------------------------------------
 export interface SkillDefinition {
@@ -5089,7 +5091,7 @@ export const SKILL_DICTIONARY: SkillDefinition[] = [
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/skills/matcher.ts
+FILE: backend/src/intelligence/skills/matcher.ts
 SIZE: 6962 bytes
 ----------------------------------------------------------------------------------------
 import { SKILL_DICTIONARY, type SkillDefinition } from './dictionary.js'
@@ -5269,7 +5271,7 @@ export function matchSkillsInText(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/intelligence/types.ts
+FILE: backend/src/intelligence/types.ts
 SIZE: 3706 bytes
 ----------------------------------------------------------------------------------------
 export interface ExtractedField<T = string> {
@@ -5416,7 +5418,7 @@ export interface SmartInsightsSummary {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/profile/routes.test.ts
+FILE: backend/src/profile/routes.test.ts
 SIZE: 5175 bytes
 ----------------------------------------------------------------------------------------
 import { once } from 'node:events'
@@ -5586,7 +5588,7 @@ describe('authenticated profile API', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/profile/routes.ts
+FILE: backend/src/profile/routes.ts
 SIZE: 4640 bytes
 ----------------------------------------------------------------------------------------
 import { Router } from 'express'
@@ -5738,7 +5740,7 @@ profileRouter.patch('/', async (request, response) => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/server.ts
+FILE: backend/src/server.ts
 SIZE: 2156 bytes
 ----------------------------------------------------------------------------------------
 import { app } from './app.js'
@@ -5804,7 +5806,7 @@ startServer().catch(() => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/types/express.d.ts
+FILE: backend/src/types/express.d.ts
 SIZE: 156 bytes
 ----------------------------------------------------------------------------------------
 declare global {
@@ -5820,7 +5822,7 @@ export {}
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/vault/cuid.ts
+FILE: backend/src/vault/cuid.ts
 SIZE: 217 bytes
 ----------------------------------------------------------------------------------------
 import crypto from 'node:crypto'
@@ -5834,7 +5836,7 @@ export function cuid2(): string {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/vault/quota.ts
+FILE: backend/src/vault/quota.ts
 SIZE: 3737 bytes
 ----------------------------------------------------------------------------------------
 import { type PrismaClient } from '@prisma/client'
@@ -5981,7 +5983,7 @@ export async function reconcileUserStorage(
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/vault/routes.test.ts
+FILE: backend/src/vault/routes.test.ts
 SIZE: 18833 bytes
 ----------------------------------------------------------------------------------------
 import { once } from 'node:events'
@@ -6534,7 +6536,7 @@ describe('Vault API routes and storage operations', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/vault/routes.ts
+FILE: backend/src/vault/routes.ts
 SIZE: 55452 bytes
 ----------------------------------------------------------------------------------------
 import { Router, type Request, type Response, type NextFunction } from 'express'
@@ -8250,7 +8252,7 @@ vaultRouter.post('/storage/reconcile', async (req: Request, res: Response, next:
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/vault/storage.test.ts
+FILE: backend/src/vault/storage.test.ts
 SIZE: 2958 bytes
 ----------------------------------------------------------------------------------------
 import { describe, expect, it } from 'vitest'
@@ -8329,7 +8331,7 @@ describe('Vault storage validation and providers', () => {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/src/vault/storage.ts
+FILE: backend/src/vault/storage.ts
 SIZE: 9745 bytes
 ----------------------------------------------------------------------------------------
 import crypto from 'node:crypto'
@@ -8632,7 +8634,7 @@ export function setStorageProvider(provider: StorageProvider | undefined) {
 
 
 ----------------------------------------------------------------------------------------
-FILE: api/tsconfig.json
+FILE: backend/tsconfig.json
 SIZE: 465 bytes
 ----------------------------------------------------------------------------------------
 {
@@ -9419,7 +9421,7 @@ My recommendation is to use this plan as the implementation baseline. Next, we c
 
 ----------------------------------------------------------------------------------------
 FILE: docs/authentication-authorization-design.md
-SIZE: 22151 bytes
+SIZE: 22155 bytes
 ----------------------------------------------------------------------------------------
 # Authentication & Authorization Design
 
@@ -9430,7 +9432,7 @@ Status: approved design; authentication foundation and protected record routes a
 Demo mode remains the default. API mode is available through `VITE_DATA_MODE=api` and uses Supabase authentication with user-scoped routes.
 
 - Frontend: `src/App.tsx` selects `DemoCareerDataProvider` by default and selects `ApiCareerDataProvider` only in API mode. Demo data remains in browser `localStorage` under `careeros-demo-v1`; API mode does not silently import or link those records.
-- Backend: `api/src/app.ts` exposes `/api/health`, `/api/auth/provision`, and authenticated `/api/data` routes. Data operations derive `userId` from the verified internal mapping, validate related record ownership, and scope reads, updates, and deletes.
+- Backend: `backend/src/app.ts` exposes `/api/health`, `/api/auth/provision`, and authenticated `/api/data` routes. Data operations derive `userId` from the verified internal mapping, validate related record ownership, and scope reads, updates, and deletes.
 - Database: `User.supabaseAuthId` is a nullable unique PostgreSQL UUID. The migrations for application preparation notes, task category, and contact tags were applied on 2026-10-29; read-only status confirms all four migrations are applied and the Prisma schema diff is empty.
 - Supabase configuration: the browser uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`; the API uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. The server verifies request tokens with `supabase.auth.getUser(token)` using the least-privileged supported configuration. A service-role key is not required solely for token verification.
 - Authentication and provisioning: the API requires confirmed email on each protected request, resolves internal users by the verified Supabase UUID only, and rejects unprovisioned mappings rather than creating them implicitly. A dedicated provisioning endpoint handles confirmed identities; email uniqueness conflicts are not automatically linked.
@@ -9729,7 +9731,7 @@ Do not migrate demo data without an explicit data migration plan. The schema mig
 
 ----------------------------------------------------------------------------------------
 FILE: docs/implementation-progress.md
-SIZE: 13873 bytes
+SIZE: 13881 bytes
 ----------------------------------------------------------------------------------------
 # Implementation progress
 
@@ -9741,7 +9743,7 @@ SIZE: 13873 bytes
 - Read-only `npm run db:check` succeeded and reported the application tables. `npx prisma migrate status` reported both checked-in migrations applied and the schema up to date; no migration was run.
 - `npm run prisma:validate` passed.
 - `npm run test`, `npm run lint`, `npm run build`, and `npm run build:api` passed at baseline. The initial API build omitted the CA certificate.
-- Updated the API build to copy the certificate and made Supabase database TLS fail closed if the certificate is missing. Verified the certificate is in `api/dist/` and reran `npm run db:check` successfully.
+- Updated the API build to copy the certificate and made Supabase database TLS fail closed if the certificate is missing. Verified the certificate is in `backend/dist/` and reran `npm run db:check` successfully.
 - Updated database setup and README connection-status statements based on the observed read-only checks.
 - Secret-pattern scanning returned only the documented example files; local environment variable names were checked without reading or printing values.
 
@@ -9767,7 +9769,7 @@ SIZE: 13873 bytes
 - Auth unit tests cover verification and safe provisioning behavior. Live signup, email delivery, and confirmation have not been tested end-to-end.
 - `requireAuth` is applied to `/api/data`; `/api/auth/provision` independently verifies the bearer token and confirmed identity before provisioning.
 - Added mocked UI/provider tests for signed-out menu options, signup confirmation messaging, successful login, session restoration after provider remount, and sign-out. Added middleware tests for missing-token rejection and distinct UUID-to-internal-user mappings.
-- Fixed the local server configuration mismatch: frontend `.env.local` uses `VITE_SUPABASE_*`, while Express requires `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `api/.env`. The API env file now has the backend names populated from the matching local frontend project settings, without changing credentials in tracked files. A separate compiled API process loaded that config and returned 401 for a missing bearer token instead of `AUTH_NOT_CONFIGURED` 503.
+- Fixed the local server configuration mismatch: frontend `.env.local` uses `VITE_SUPABASE_*`, while Express requires `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `backend/.env`. The API env file now has the backend names populated from the matching local frontend project settings, without changing credentials in tracked files. A separate compiled API process loaded that config and returned 401 for a missing bearer token instead of `AUTH_NOT_CONFIGURED` 503.
 - Added middleware regressions for missing server configuration (503), valid token verification (`getUser(token)`), invalid token rejection (401), and UUID-scoped internal identity resolution.
 - The test command now scopes discovery to frontend/API source and the API build excludes test files, preventing generated `dist` tests from being rediscovered after a build.
 
@@ -9833,7 +9835,7 @@ SIZE: 13873 bytes
 
 ----------------------------------------------------------------------------------------
 FILE: docs/phase5_implementation_report.md
-SIZE: 9372 bytes
+SIZE: 9388 bytes
 ----------------------------------------------------------------------------------------
 # CareerOS — Phase 5: Connected Workspace & Quick Capture Implementation Report
 
@@ -9904,7 +9906,7 @@ Phase 5 transitions CareerOS from siloed directory tables and isolated Vault sto
 ## 2. Database & API Architecture Verification
 
 ### 2.1 Supabase Database Migrations
-- Verified migration status against production Supabase PostgreSQL via `npx prisma migrate status --config=api/prisma.config.ts`.
+- Verified migration status against production Supabase PostgreSQL via `npx prisma migrate status --config=backend/prisma.config.ts`.
 - Database is up-to-date with 6 applied migrations:
   1. `20261028000000_init_auth_and_records`
   2. `20261028120000_add_user_profile`
@@ -9912,10 +9914,10 @@ Phase 5 transitions CareerOS from siloed directory tables and isolated Vault sto
   4. `20261029000000_auth_hardening_and_session_cleanup`
   5. `20261031000000_add_storage_and_canonical_models`
   6. `20261106000000_add_vault_module`
-- Prisma schema validation (`npx prisma validate --config=api/prisma.config.ts`) passed with 0 errors.
+- Prisma schema validation (`npx prisma validate --config=backend/prisma.config.ts`) passed with 0 errors.
 
 ### 2.2 Backend Vault Endpoints
-The following endpoints in `api/src/vault/routes.ts` service Phase 5:
+The following endpoints in `backend/src/vault/routes.ts` service Phase 5:
 - `GET /api/vault/job-descriptions` & `POST /api/vault/job-descriptions`
 - `GET /api/vault/applications/:applicationId/documents`
 - `POST /api/vault/applications/:applicationId/documents`
@@ -9939,7 +9941,7 @@ Vitest executed across all API and frontend test suites:
   - `src/components/CompanySelectWithCreate.test.tsx`: Search, inline company creation, duplicate warning, and custom creation callbacks.
   - `src/components/RecordDialog.test.tsx`: Modal lifecycle and field rendering.
   - `src/pages/VaultPage.test.tsx`: Overview, storage summary, navigation tabs, and upload dialogs.
-  - `api/src/vault/routes.test.ts`: Vault API routes, signed URLs, and file operations.
+  - `backend/src/vault/routes.test.ts`: Vault API routes, signed URLs, and file operations.
   - `src/components/AppShell.auth.test.tsx`: Header navigation, quick menus, and session handling.
 
 ### 3.2 Production Build Verification
@@ -9970,7 +9972,7 @@ Vitest executed across all API and frontend test suites:
 
 ----------------------------------------------------------------------------------------
 FILE: docs/phase6_lite_implementation_report.md
-SIZE: 9787 bytes
+SIZE: 9851 bytes
 ----------------------------------------------------------------------------------------
 # CareerOS Phase 6 Lite — Smart Engine Implementation Report
 
@@ -9992,7 +9994,7 @@ All processing operates locally using:
 ## 1. Modules Implemented
 
 ### 1.1 Module 6.1 — Job Description Text and Skill Extraction
-- **Location**: `api/src/intelligence/jd-extractor.ts`, `api/src/intelligence/document-processor.ts`, `api/src/intelligence/skills/`
+- **Location**: `backend/src/intelligence/jd-extractor.ts`, `backend/src/intelligence/document-processor.ts`, `backend/src/intelligence/skills/`
 - **Supported Formats**:
   - PDF: Extracted via `pdf-parse`. Detects scanned documents with no selectable text layer (< 15 characters) and flags them gracefully with `EMPTY` / `OCR_REQUIRED` status instead of producing corrupted text.
   - DOCX: Extracted via `mammoth.extractRawText`.
@@ -10011,7 +10013,7 @@ All processing operates locally using:
   - Implemented `src/components/vault/JdExtractionModal.tsx` allowing users to review, edit, add, or reject fields before applying them to the form.
 
 ### 1.2 Module 6.2 — Resume-to-Application Matching
-- **Location**: `api/src/intelligence/resume-matcher.ts`
+- **Location**: `backend/src/intelligence/resume-matcher.ts`
 - **Algorithm & Weights**:
   | Dimension | Weight |
   |---|---:|
@@ -10030,7 +10032,7 @@ All processing operates locally using:
   - Displays match percentage, matched vs missing skills, role tags, and an "Attach Version" button.
 
 ### 1.3 Module 6.3 — Automatic Preparation Checklist Generation
-- **Location**: `api/src/intelligence/preparation-generator.ts`
+- **Location**: `backend/src/intelligence/preparation-generator.ts`
 - **Mapping**: Skills mapped to specific interview preparation topics (e.g., Java -> OOP, Collections, Multithreading; SQL -> Joins, Indexing, Transactions; React -> Virtual DOM, Hooks, Performance; DSA -> Two-pointer, Hash Maps, Trees, Graphs).
 - **Categorization**: Auto-assigns categories (`Technical Prep`, `System Design`, `DSA Practice`, `Behavioral Prep`) and priorities (`High` for required skills, `Medium` for preferred).
 - **Scheduling**: Supports schedule generation within configurable deadline dates.
@@ -10040,7 +10042,7 @@ All processing operates locally using:
   - Click "Add Selected Tasks" to batch-create confirmed tasks in the database linked to the application. Tasks never auto-create without user approval.
 
 ### 1.4 Module 6.4 — SHA-256 Duplicate File Detection & Safe File Reuse
-- **Location**: `api/src/intelligence/file-hash.ts`, `api/src/vault/routes.ts`, `src/components/vault/VaultUploadDialog.tsx`
+- **Location**: `backend/src/intelligence/file-hash.ts`, `backend/src/vault/routes.ts`, `src/components/vault/VaultUploadDialog.tsx`
 - **Workflow**:
   1. Computes SHA-256 hash securely on backend.
   2. Queries active vault files belonging to the authenticated user (`where: { userId, sha256Hash, status: 'ACTIVE' }`). Strict user isolation guarantees zero cross-user leakage.
@@ -10050,7 +10052,7 @@ All processing operates locally using:
      - **Upload as New Copy**: Allows proceeding if user explicitly chooses.
 
 ### 1.5 Module 6.5 — Document Content & Metadata Search
-- **Location**: `api/src/intelligence/document-search.ts`, `src/components/vault/VaultSearchSection.tsx`
+- **Location**: `backend/src/intelligence/document-search.ts`, `src/components/vault/VaultSearchSection.tsx`
 - **Two Search Layers**:
   1. **Metadata Search**: Matches against display name, filename, description, tags, category, linked company, and job title.
   2. **Content Search**: Matches against text inside documents (e.g. linked JD description text, requirements, responsibilities).
@@ -10060,7 +10062,7 @@ All processing operates locally using:
   - Integrated into `src/pages/VaultPage.tsx`.
 
 ### 1.6 Module 6.6 — Smart Reminders & Career Insights
-- **Location**: `api/src/intelligence/insights.ts`, `src/components/DashboardInsightsSection.tsx`
+- **Location**: `backend/src/intelligence/insights.ts`, `src/components/DashboardInsightsSection.tsx`
 - **Deterministic Rules**:
   - Upcoming interviews (interviews within 7 days).
   - Overdue tasks (`dueAt < now` and status != `COMPLETED`).
@@ -10091,7 +10093,7 @@ All processing operates locally using:
 ## 3. Database & Schema Safety
 
 - **Prisma Schema**: `prisma/schema.prisma` already included `VaultFile.sha256Hash`, `JobDescription.requiredSkills`, `JobDescription.preferredSkills`, `JobDescription.descriptionText`, and `Task`.
-- **Migration Status**: Verified with `npx prisma migrate status --config=api/prisma.config.ts`:
+- **Migration Status**: Verified with `npx prisma migrate status --config=backend/prisma.config.ts`:
   - 6 migrations found.
   - Database schema is up-to-date.
   - Zero destructive changes or resets performed.
@@ -10105,12 +10107,12 @@ All processing operates locally using:
   - **Test Files**: 33 passed (100%)
   - **Tests**: 145 passed (100%)
   - **Intelligence Test Suites**:
-    - `api/src/intelligence/skills.test.ts` (6 tests passed)
-    - `api/src/intelligence/jd-extractor.test.ts` (4 tests passed)
-    - `api/src/intelligence/resume-matcher.test.ts` (4 tests passed)
-    - `api/src/intelligence/preparation-generator.test.ts` (3 tests passed)
-    - `api/src/intelligence/file-hash.test.ts` (3 tests passed)
-    - `api/src/intelligence/routes.test.ts` (6 tests passed)
+    - `backend/src/intelligence/skills.test.ts` (6 tests passed)
+    - `backend/src/intelligence/jd-extractor.test.ts` (4 tests passed)
+    - `backend/src/intelligence/resume-matcher.test.ts` (4 tests passed)
+    - `backend/src/intelligence/preparation-generator.test.ts` (3 tests passed)
+    - `backend/src/intelligence/file-hash.test.ts` (3 tests passed)
+    - `backend/src/intelligence/routes.test.ts` (6 tests passed)
 
 ### 4.2 Production Build Verification
 - **API Build**: `npm run build:api` completed with exit code 0 (`tsc -p tsconfig.json`).
@@ -10843,7 +10845,7 @@ SIZE: 868 bytes
 
 ----------------------------------------------------------------------------------------
 FILE: package.json
-SIZE: 1782 bytes
+SIZE: 1828 bytes
 ----------------------------------------------------------------------------------------
 {
   "name": "careeros",
@@ -10851,18 +10853,19 @@ SIZE: 1782 bytes
   "version": "0.0.0",
   "type": "module",
   "workspaces": [
-    "api"
+    "backend"
   ],
   "scripts": {
     "dev": "concurrently -k -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
     "dev:web": "vite",
     "dev:api": "npm run dev --workspace @careeros/api",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:web",
+    "build:web": "tsc -b && vite build",
     "build:api": "npm run build --workspace @careeros/api",
     "start:api": "npm run start --workspace @careeros/api",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run src api/src",
+    "test": "vitest run src backend/src",
     "prisma:generate": "npm run prisma:generate --workspace @careeros/api",
     "prisma:validate": "npm run prisma:validate --workspace @careeros/api",
     "prisma:migrate": "npm run prisma:migrate --workspace @careeros/api",
@@ -12006,7 +12009,7 @@ model StorageUsage {
 
 ----------------------------------------------------------------------------------------
 FILE: README.md
-SIZE: 7504 bytes
+SIZE: 8133 bytes
 ----------------------------------------------------------------------------------------
 # CareerOS
 
@@ -12034,7 +12037,7 @@ CareerOS is a career-management workspace for applications, companies, contacts,
 ## Project layout
 
 ```text
-api/
+backend/
   src/auth/            Supabase verification, internal-user mapping, and provisioning
   src/data/             Authenticated owner-scoped record API
   src/db/              Prisma singleton and read-only connection check
@@ -12061,7 +12064,7 @@ npm install
 npm run dev
 ```
 
-The frontend runs at `http://localhost:5173`; Express runs at `http://localhost:3001`. The frontend is proxied to the API for `/api` requests. Configure backend settings in `api/.env`; see [DATABASE_SETUP.md](./DATABASE_SETUP.md) for Supabase and Prisma instructions.
+The frontend runs at `http://localhost:5173`; Express runs at `http://localhost:3001`. The frontend is proxied to the API for `/api` requests. Configure backend settings in `backend/.env`; see [DATABASE_SETUP.md](./DATABASE_SETUP.md) for Supabase and Prisma instructions.
 
 Useful checks:
 
@@ -12079,9 +12082,14 @@ npm run db:check
 
 `VITE_DATA_MODE` defaults to `demo`. In demo mode, editable records are saved to this browser's `localStorage` under `careeros-demo-v1`; existing browser data is retained and can be downloaded from Settings. Nothing is uploaded automatically. There is no import or cloud migration flow yet.
 
-In the profile menu, signed-out users can open **Sign in** or **Create account** even while demo mode is active. To use real Supabase authentication, add the project URL and publishable key as `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the frontend environment, and as `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `api/.env`. Set `VITE_DATA_MODE=api` to select the authenticated API provider; the default remains `demo`. API mode does not import demo records. Confirmed Supabase identities are mapped to internal users by Supabase UUID; email alone is never used to link accounts. The server verifies each bearer token with `supabase.auth.getUser(token)` and rejects unconfirmed identities. No service-role key is required for token verification.
+In the profile menu, signed-out users can open **Sign in** or **Create account** even while demo mode is active. To use real Supabase authentication, add the project URL and publishable key as `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the frontend environment, and as `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` in `backend/.env`. Set `VITE_DATA_MODE=api` to select the authenticated API provider; the default remains `demo`. API mode does not import demo records. Confirmed Supabase identities are mapped to internal users by Supabase UUID; email alone is never used to link accounts. The server verifies each bearer token with `supabase.auth.getUser(token)` and rejects unconfirmed identities. No service-role key is required for token verification.
 
 The frontend calls relative `/api` endpoints. Vite proxies these requests to `http://localhost:3001` in development; production hosting must provide a same-origin `/api` reverse proxy. There is no separate API base URL setting.
+
+## Deployment
+
+- **Vercel:** Keep the project Root Directory at the repository root. Use `npm run build:web` as the build command and `dist` as the output directory. `vercel.json` forwards `/api/*` to Render. The backend lives in `backend/`, not Vercel's reserved root `api/` functions directory.
+- **Render:** Update the existing service Root Directory from `api` to `backend` if it was set to the old folder. Use `npm run build` for the build command and `npm run start` for the start command. Keep the existing backend environment variables configured in Render; no database or auth settings need to change.
 
 For local Supabase Auth, set the dashboard Site URL to `http://localhost:5173` and allow redirects to `http://localhost:5173/auth/confirm` and `http://localhost:5173/auth/recovery`. Sign-up requires email confirmation before API access.
 
@@ -25412,7 +25420,7 @@ createRoot(root).render(
 
 ----------------------------------------------------------------------------------------
 FILE: src/pages/AuthPage.tsx
-SIZE: 6618 bytes
+SIZE: 6622 bytes
 ----------------------------------------------------------------------------------------
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -25500,7 +25508,7 @@ export function AuthPage({ page }: { page: AuthPageKind }) {
             )}
             {showPasswordFields && <label className="form-field"><span>Password</span><input name="password" type="password" autoComplete={page === 'login' ? 'current-password' : 'new-password'} required minLength={8} /></label>}
             {(page === 'signup' || page === 'recovery') && <label className="form-field"><span>Confirm password</span><input name="confirmPassword" type="password" autoComplete="new-password" required minLength={8} /></label>}
-            {!configured && <p className="auth-message" role="alert">Authentication is not configured. Set the public Supabase URL and publishable key in the frontend environment, and configure the same project in `api/.env`.</p>}
+            {!configured && <p className="auth-message" role="alert">Authentication is not configured. Set the public Supabase URL and publishable key in the frontend environment, and configure the same project in `backend/.env`.</p>}
             {auth.authError && <p className="auth-error" role="alert">{auth.authError}</p>}
             {error && <p className="auth-error" role="alert">{error}</p>}
             {notice && <p className="auth-message" role="status">{notice}</p>}
@@ -26728,6 +26736,26 @@ SIZE: 578 bytes
 
 
 ----------------------------------------------------------------------------------------
+FILE: vercel.json
+SIZE: 246 bytes
+----------------------------------------------------------------------------------------
+{
+  "framework": "vite",
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://careeros-api-ov72.onrender.com/api/:path*"
+    }
+  ]
+}
+
+
+
+
+
+----------------------------------------------------------------------------------------
 FILE: vite.config.ts
 SIZE: 268 bytes
 ----------------------------------------------------------------------------------------
@@ -26749,11 +26777,11 @@ export default defineConfig({
 ========================================================================================
 GENERATION REPORT
 ========================================================================================
-Generation time: 2026-11-16 13:41:35 +05:30
+Generation time: 2026-11-21 13:32:27 +05:30
 Project root: E:\ARYAN\Projects\CareerOS
-Included file count: 141
+Included file count: 142
 Skipped file count: 13
-Included source bytes: 1053074
+Included source bytes: 1054203
 Per-file size limit: 262144 bytes
 Configured total-output limit: 5242880 bytes
 Files skipped because of size limits: 1
@@ -26761,7 +26789,7 @@ Files requiring manual secret review: 7
 Processing errors: 0
 
 FILES EXCLUDED FOR POSSIBLE SECRETS - REVIEW MANUALLY
- - api/.env.example
+ - backend/.env.example
  - DATABASE_SETUP.md
  - Project-Report.md
  - src/context/ApiCareerData.test.tsx
@@ -26773,9 +26801,9 @@ These files were not copied into the snapshot.
 SKIPPED FILES
  - .env :: Excluded by safety or file-type rules
  - .env.local :: Excluded by safety or file-type rules
- - api/.env :: Excluded by safety or file-type rules
- - api/.env.example :: Possible hardcoded secret; excluded for manual review
- - api/prod-ca-2021.crt :: Excluded by safety or file-type rules
+ - backend/.env :: Excluded by safety or file-type rules
+ - backend/.env.example :: Possible hardcoded secret; excluded for manual review
+ - backend/prod-ca-2021.crt :: Excluded by safety or file-type rules
  - DATABASE_SETUP.md :: Possible hardcoded secret; excluded for manual review
  - package-lock.json :: File exceeds per-file limit of 262144 bytes
  - Project-Report.md :: Possible hardcoded secret; excluded for manual review
