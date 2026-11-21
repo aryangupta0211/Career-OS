@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "prebuild": "npm run prisma:generate",
     "build": "tsc -p tsconfig.json && node --input-type=module -e \"import { copyFileSync } from 'node:fs'; copyFileSync('prod-ca-2021.crt', 'dist/prod-ca-2021.crt')\"",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",

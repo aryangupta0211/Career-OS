@@ -42,7 +42,7 @@ vi.mock('../auth/middleware.js', () => ({
     }
     const token = authHeader.slice(7)
     const userId = token === 'user-b' ? 'user-b' : 'user-a'
-    request.auth = { userId, token }
+    request.auth = { userId, email: `${userId}@example.test`, name: userId }
     next()
   },
 }))
