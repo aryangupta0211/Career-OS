@@ -14,9 +14,11 @@ export interface AuthContextValue {
   provisioning: boolean
   authError: string
   provisioningError: string
+  provisioningErrorCode?: string
   dataMode: 'demo' | 'api'
   signUp: (name: string, email: string, password: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle?: (nextPath?: string) => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
   updatePassword: (password: string) => Promise<void>
   updateDisplayName: (name: string) => Promise<void>

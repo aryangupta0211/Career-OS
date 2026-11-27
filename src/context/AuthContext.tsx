@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { getDataMode, getSupabaseClient, isSupabaseConfigured } from '../lib/supabase'
-import { apiErrorMessage, readJsonBody } from '../lib/api'
+import { apiErrorCode, apiErrorMessage, readJsonBody } from '../lib/api'
 import { AuthContext, type ApplicationUser, type AuthContextValue } from './auth-context'
 
 function messageOf(error: unknown) {
@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(isSupabaseConfigured)
   const [authError, setAuthError] = useState('')
   const [provisioned, setProvisioned] = useState<{ identityId: string; user: ApplicationUser } | null>(null)
-  const [provisionFailure, setProvisionFailure] = useState<{ identityId: string; message: string } | null>(null)
+  const [provisionFailure, setProvisionFailure] = useState<{ identityId: string; code?: string; message: string } | null>(null)
   const [provisionAttempt, setProvisionAttempt] = useState(0)
   const currentIdentity = useRef<string | null>(null)
   const sessionIdentityId = session?.user.id
@@ -64,30 +64,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!sessionIdentityId || !accessToken || dataMode !== 'api' || !isSupabaseConfigured || provisioned?.identityId === sessionIdentityId) return
 
     let active = true
-    void fetch('/api/auth/provision', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}` },
-    }).then(async (response) => {
-      const body = await readJsonBody(response)
-      if (!response.ok) {
-        throw new Error(apiErrorMessage(body, `Account setup failed (${response.status}).`))
-      }
-      if (typeof body !== 'object' || body === null || !('user' in body) || typeof body.user !== 'object' || body.user === null) {
-        throw new Error('The server returned an invalid account response.')
-      }
-      const candidate = body.user
-      if (!('id' in candidate) || typeof candidate.id !== 'string'
-        || !('name' in candidate) || typeof candidate.name !== 'string'
-        || !('email' in candidate) || typeof candidate.email !== 'string') {
-        throw new Error('The server returned an invalid account response.')
-      }
-      if (active) setProvisioned({
-        identityId: sessionIdentityId,
-        user: { id: candidate.id, name: candidate.name, email: candidate.email },
+      void fetch('/api/auth/provision', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).then(async (response) => {
+        const body = await readJsonBody(response)
+        if (!response.ok) {
+          const code = apiErrorCode(body)
+          const message = apiErrorMessage(body, `Account setup failed (${response.status}).`)
+          if (active) setProvisionFailure({ identityId: sessionIdentityId, code, message })
+          return
+        }
+        if (typeof body !== 'object' || body === null || !('user' in body) || typeof body.user !== 'object' || body.user === null) {
+          throw new Error('The server returned an invalid account response.')
+        }
+        const candidate = body.user
+        if (!('id' in candidate) || typeof candidate.id !== 'string'
+          || !('name' in candidate) || typeof candidate.name !== 'string'
+          || !('email' in candidate) || typeof candidate.email !== 'string') {
+          throw new Error('The server returned an invalid account response.')
+        }
+        if (active) setProvisioned({
+          identityId: sessionIdentityId,
+          user: { id: candidate.id, name: candidate.name, email: candidate.email },
+        })
+      }).catch((error: unknown) => {
+        if (active) setProvisionFailure({ identityId: sessionIdentityId, message: messageOf(error) })
       })
-    }).catch((error: unknown) => {
-      if (active) setProvisionFailure({ identityId: sessionIdentityId, message: messageOf(error) })
-    })
     return () => { active = false }
   }, [accessToken, dataMode, provisionAttempt, provisioned?.identityId, sessionIdentityId])
 
@@ -103,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ? provisioned.user
     : dataMode === 'demo' ? sessionUser : null
   const provisioningError = session && provisionFailure?.identityId === session.user.id ? provisionFailure.message : ''
+  const provisioningErrorCode = session && provisionFailure?.identityId === session.user.id ? provisionFailure.code : undefined
   const provisioning = dataMode === 'api' && Boolean(session) && !user && !provisioningError
 
   const value = useMemo<AuthContextValue>(() => ({
@@ -112,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     provisioning,
     authError,
     provisioningError,
+    provisioningErrorCode,
     dataMode,
     signUp: async (name, email, password) => {
       const client = await getSupabaseClient()
@@ -128,6 +133,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn: async (email, password) => {
       const client = await getSupabaseClient()
       const { error } = await client.auth.signInWithPassword({ email, password })
+      if (error) throw error
+    },
+    signInWithGoogle: async (nextPath = '/') => {
+      const client = await getSupabaseClient()
+      const safeNext = nextPath.startsWith('/') && !nextPath.startsWith('//') ? nextPath : '/'
+      const { error } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(safeNext)}` },
+      })
       if (error) throw error
     },
     requestPasswordReset: async (email) => {
@@ -159,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProvisionFailure(null)
       setProvisionAttempt((attempt) => attempt + 1)
     },
-  }), [authError, dataMode, loading, provisioning, provisioningError, queryClient, session, user])
+  }), [authError, dataMode, loading, provisioning, provisioningError, provisioningErrorCode, queryClient, session, user])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import { isSupabaseConfigured } from '../lib/supabase'
@@ -20,6 +20,14 @@ export function AuthPage({ page }: { page: AuthPageKind }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const state = location.state as { from?: string } | null
+  const requestedPath = state?.from ?? new URLSearchParams(location.search).get('next') ?? '/'
+  const nextPath = requestedPath.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : '/'
+
+  useEffect(() => {
+    if (auth.loading || !auth.session || page === 'recovery' || page === 'confirm') return
+    navigate(nextPath, { replace: true })
+  }, [auth.loading, auth.session, navigate, nextPath, page])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -38,7 +46,7 @@ export function AuthPage({ page }: { page: AuthPageKind }) {
         setNotice('Check your email for a confirmation link before signing in.')
       } else if (page === 'login') {
         await auth.signIn(email, password)
-        navigate('/', { replace: true })
+        navigate(nextPath, { replace: true })
       } else if (page === 'forgot-password') {
         await auth.requestPasswordReset(email)
         setNotice('If an account exists for that address, a password reset link is on its way.')
@@ -51,6 +59,18 @@ export function AuthPage({ page }: { page: AuthPageKind }) {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Something went wrong. Please try again.')
     } finally {
+      setBusy(false)
+    }
+  }
+
+  const continueWithGoogle = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      if (!auth.signInWithGoogle) throw new Error('Google sign-in is unavailable in this environment.')
+      await auth.signInWithGoogle(nextPath)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Google sign-in could not be started. Please try again.')
       setBusy(false)
     }
   }
@@ -92,9 +112,15 @@ export function AuthPage({ page }: { page: AuthPageKind }) {
             <button className="button button-primary auth-submit" type="submit" disabled={busy || !configured || auth.loading}>
               {busy ? 'Please wait…' : page === 'signup' ? 'Create account' : page === 'login' ? 'Sign in' : page === 'forgot-password' ? 'Send reset link' : 'Update password'}
             </button>
+            {(page === 'login' || page === 'signup') && <>
+              <div className="auth-divider" aria-hidden="true"><span>or</span></div>
+              <button className="button button-secondary auth-submit auth-google-button" type="button" disabled={busy || !configured || auth.loading} onClick={() => { void continueWithGoogle() }}>
+                <span aria-hidden="true" className="auth-google-mark">G</span>Continue with Google
+              </button>
+            </>}
           </form>
         )}
-        {page === 'confirm' && auth.session && <Link className="button button-primary auth-submit auth-link-button" to="/">Continue to CareerOS</Link>}
+        {page === 'confirm' && auth.session && <Link className="button button-primary auth-submit auth-link-button" to={nextPath}>Continue to CareerOS</Link>}
         {page === 'recovery' && !auth.session && !auth.loading && <Link className="button button-primary auth-submit auth-link-button" to="/auth/forgot-password">Request another link</Link>}
         <nav className="auth-links" aria-label="Authentication links">
           {returnToLogin && <Link to="/auth/login">Sign in</Link>}

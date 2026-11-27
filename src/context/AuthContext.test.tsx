@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     getSession: vi.fn(),
     signUp: vi.fn(),
     signInWithPassword: vi.fn(),
+    signInWithOAuth: vi.fn(),
     signOut: vi.fn(),
     resetPasswordForEmail: vi.fn(),
     updateUser: vi.fn(),
@@ -54,6 +55,7 @@ function SessionView() {
     <p>{auth.user?.email ?? ''}</p>
     <button onClick={() => { void auth.signOut() }}>End session</button>
     <button onClick={() => { void auth.updateDisplayName('Taylor Updated') }}>Update display name</button>
+    <button onClick={() => { void auth.signInWithGoogle?.('/applications') }}>Google sign in</button>
   </>
 }
 
@@ -90,6 +92,7 @@ beforeEach(() => {
     mocks.listener?.('SIGNED_IN', testSession)
     return { data: { session: testSession, user: testSession.user }, error: null }
   })
+  mocks.auth.signInWithOAuth.mockReset().mockResolvedValue({ data: { provider: 'google', url: 'https://accounts.google.test' }, error: null })
   mocks.auth.signOut.mockReset().mockImplementation(async () => {
     mocks.session = null
     mocks.listener?.('SIGNED_OUT', null)
@@ -153,6 +156,17 @@ describe('Supabase AuthProvider session flows', () => {
 
     await waitFor(() => expect(mocks.auth.updateUser).toHaveBeenCalledWith({
       data: { full_name: 'Taylor Updated' },
+    }))
+  })
+
+  it('starts Google OAuth through the existing Supabase client with a safe confirmation callback', async () => {
+    const user = userEvent.setup()
+    renderAuth('/')
+    await user.click(screen.getByRole('button', { name: 'Google sign in' }))
+
+    await waitFor(() => expect(mocks.auth.signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/confirm?next=%2Fapplications` },
     }))
   })
 })

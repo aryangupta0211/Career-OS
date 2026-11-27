@@ -39,3 +39,12 @@ export function apiErrorMessage(body: unknown, fallback: string) {
   }
   return fallback
 }
+
+export function apiErrorCode(body: unknown): string | undefined {
+  if (typeof body === 'object' && body !== null && 'error' in body) {
+    const error = body.error
+    if (typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string') return error.code
+  }
+  return undefined
+}
+
